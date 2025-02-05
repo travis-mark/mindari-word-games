@@ -8,7 +8,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strings"
 
 	"github.com/joho/godotenv"
 	_ "github.com/mattn/go-sqlite3"
@@ -29,21 +28,15 @@ type Author struct {
 	Username string `json:"username"`
 }
 
-type Score struct {
-	ID       string
-	Username string
-	Score    string
-	Content  string
-}
-
 // Add scores to database
 // TODO: Normalize author
 func AddScores(db *sql.DB, scores []Score) error {
 	// Prepare the upsert statement
 	stmt, err := db.Prepare(`
-		INSERT INTO scores (id, username, score, content)
-		VALUES (?, ?, ?, ?)
+		INSERT INTO scores (id, username, game, score, content)
+		VALUES (?, ?, ?, ?, ?)
 		ON CONFLICT(id) DO UPDATE SET
+			game = excluded.game,
 			username = excluded.username,
 			score = excluded.score,
             content = excluded.content
@@ -61,7 +54,7 @@ func AddScores(db *sql.DB, scores []Score) error {
 
 	// Execute the upsert for each score
 	for _, score := range scores {
-		_, err := tx.Stmt(stmt).Exec(score.ID, score.Username, score.Score, score.Content)
+		_, err := tx.Stmt(stmt).Exec(score.ID, score.Username, score.Game, score.Score, score.Content)
 		if err != nil {
 			tx.Rollback()
 			return fmt.Errorf("failed add score %s: %v", score.ID, err)
@@ -76,36 +69,6 @@ func AddScores(db *sql.DB, scores []Score) error {
 	return nil
 }
 
-// Parse message to extract score
-// TODO: Parse game
-// TODO: Parse score
-func ParseScores(messages []Message) ([]Score, error) {
-	scores := make([]Score, 0, len(messages))
-
-	for _, msg := range messages {
-		if msg.Type != 0 {
-			continue
-		}
-		lines := strings.Split(msg.Content, "\n")
-		if len(lines) == 0 {
-			continue
-		}
-		score := Score{
-			ID:       msg.ID,
-			Username: msg.Author.Username,
-			Score:    lines[0],
-			Content:  msg.Content,
-		}
-		scores = append(scores, score)
-	}
-
-	if len(scores) == 0 {
-		return nil, fmt.Errorf("no valid scores found in messages")
-	}
-
-	return scores, nil
-}
-
 func main() {
 	// Load .env to get secrets
 	err := godotenv.Load()
@@ -115,10 +78,10 @@ func main() {
 
 	// Create a new request
 	// TODO: Handle more than 50 messages
-    channel := os.Getenv("CHANNEL")
-    if channel == "" {
-        log.Fatal(fmt.Errorf("CHANNEL not set in environment"))
-    }
+	channel := os.Getenv("CHANNEL")
+	if channel == "" {
+		log.Fatal(fmt.Errorf("CHANNEL not set in environment"))
+	}
 	url := fmt.Sprintf("https://discord.com/api/v9/channels/%s/messages?limit=50", channel)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -165,6 +128,7 @@ func main() {
 		CREATE TABLE IF NOT EXISTS scores (
 			id INTEGER PRIMARY KEY,
 			username TEXT,
+			game TEXT,
 			score TEXT,
             content TEXT
 		)
