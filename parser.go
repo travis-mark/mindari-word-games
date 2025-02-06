@@ -7,11 +7,14 @@ import (
 )
 
 type Score struct {
-	ID       string
-	Username string
-	Game     string
-	Score    string
-	Content  string
+	ID         string
+	Username   string
+	Game       string
+	GameNumber string
+	Score      string
+	Content    string
+	Win        string
+	Hardmode   string
 }
 
 // Parse message to extract score
@@ -24,11 +27,17 @@ func ParseScoreFromMessage(msg Message) (*Score, error) {
 		return nil, fmt.Errorf("Message content is blank")
 	}
 	game := ""
+	game_no := ""
+	hardmode := ""
+	win := ""
 	score_value := lines[0]
 	patterns := []*regexp.Regexp{
 		regexp.MustCompile(`(?P<game>Wordle) (?P<game_no>[\d,]+) (?P<score>\w)\/6(?P<hardmode>[*]?)`),
 		regexp.MustCompile(`(?s)(?P<game>[A-Za-z ]*Octordle) #(?P<game_no>\d+).*Score[:] (?P<score>\d+)`),
 	}
+	//   "X" -> data |> Map.put("win", false) |> Map.put("score", "7")
+	//   data |> Map.put("win", !String.contains?(input, "🟥"))
+
 	for _, re := range patterns {
 		match := re.FindStringSubmatch(msg.Content)
 		if match != nil {
@@ -37,6 +46,10 @@ func ParseScoreFromMessage(msg Message) (*Score, error) {
 				switch name {
 				case "game":
 					game = match[i]
+				case "game_no":
+					game_no = match[i]
+				case "hardmode":
+					hardmode = match[i]
 				case "score":
 					score_value = match[i]
 				}
@@ -44,12 +57,31 @@ func ParseScoreFromMessage(msg Message) (*Score, error) {
 			break // patterns
 		}
 	}
+	switch {
+	case game == "Wordle":
+		if score_value == "X" {
+			score_value = "7"
+			win = "N"
+		} else {
+			win = "Y"
+		}
+	case strings.Contains(game, "Octordle"):
+		if strings.Contains(msg.Content, "🟥") {
+			win = "N"
+		} else {
+			win = "Y"
+		}
+	}
+
 	score := Score{
-		ID:       msg.ID,
-		Username: msg.Author.Username,
-		Game:     game,
-		Score:    score_value,
-		Content:  msg.Content,
+		ID:         msg.ID,
+		Username:   msg.Author.Username,
+		Game:       game,
+		GameNumber: game_no,
+		Hardmode:   hardmode,
+		Score:      score_value,
+		Content:    msg.Content,
+		Win:        win,
 	}
 	return &score, nil
 }

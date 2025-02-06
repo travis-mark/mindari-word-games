@@ -34,6 +34,8 @@ func main() {
 
 	// Create a new request
 	// TODO: Handle more than 50 messages
+	// https://discord.com/developers/docs/resources/message#get-channel-messages
+	// When message count is high enough
 	channel := os.Getenv("CHANNEL")
 	if channel == "" {
 		log.Fatal(fmt.Errorf("CHANNEL not set in environment"))
