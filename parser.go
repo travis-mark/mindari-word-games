@@ -35,9 +35,6 @@ func ParseScoreFromMessage(msg Message) (*Score, error) {
 		regexp.MustCompile(`(?P<game>Wordle) (?P<game_no>[\d,]+) (?P<score>\w)\/6(?P<hardmode>[*]?)`),
 		regexp.MustCompile(`(?s)(?P<game>[A-Za-z ]*Octordle) #(?P<game_no>\d+).*Score[:] (?P<score>\d+)`),
 	}
-	//   "X" -> data |> Map.put("win", false) |> Map.put("score", "7")
-	//   data |> Map.put("win", !String.contains?(input, "🟥"))
-
 	for _, re := range patterns {
 		match := re.FindStringSubmatch(msg.Content)
 		if match != nil {
@@ -57,6 +54,7 @@ func ParseScoreFromMessage(msg Message) (*Score, error) {
 			break // patterns
 		}
 	}
+	// TODO: Handle failed parse
 	switch {
 	case game == "Wordle":
 		if score_value == "X" {
