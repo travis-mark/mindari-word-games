@@ -56,7 +56,6 @@ func ParseScoreFromMessage(msg Message) (*Score, error) {
 			break // patterns
 		}
 	}
-	// TODO: Handle failed parse
 	switch {
 	case game == "Wordle":
 		if score_value == "X" {
@@ -86,6 +85,8 @@ func ParseScoreFromMessage(msg Message) (*Score, error) {
 		} else {
 			win = "N"
 		}
+	default:
+		return nil, fmt.Errorf("Message did not parse: %s", msg.Content)
 	}
 
 	score := Score{
@@ -107,8 +108,7 @@ func ParseScores(messages []Message) ([]Score, error) {
 	for _, msg := range messages {
 		score, err := ParseScoreFromMessage(msg)
 		if err != nil {
-			// Drop errors, TODO: Log?
-			fmt.Printf("ParseScoreFromMessage error = %v", err)
+			fmt.Printf("%v\n", err)
 			continue
 		}
 		scores = append(scores, *score)

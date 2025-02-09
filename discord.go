@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -66,12 +65,13 @@ func fetchFromDiscord(options Options) error {
 		return err
 	}
 	if resp.StatusCode != http.StatusOK {
-		fmt.Printf("Request failed with status: %s\n", resp.Status)
+		err = fmt.Errorf("Request failed with status: %s", resp.Status)
+		return err
 	}
 	var messages []Message
 	err = json.Unmarshal(body, &messages)
 	if err != nil {
-		log.Fatal(fmt.Sprintf("JSON parse error: %v", err))
+		return err
 	}
 
 	// Upsert to DB
