@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
 )
 
@@ -34,6 +35,7 @@ func ParseScoreFromMessage(msg Message) (*Score, error) {
 	patterns := []*regexp.Regexp{
 		regexp.MustCompile(`(?P<game>Wordle) (?P<game_no>[\d,]+) (?P<score>\w)\/6(?P<hardmode>[*]?)`),
 		regexp.MustCompile(`(?s)(?P<game>[A-Za-z ]*Octordle) #(?P<game_no>\d+).*Score[:] (?P<score>\d+)`),
+		regexp.MustCompile(`(?s)(?P<game>Connections).*Puzzle #(?P<game_no>\d+)`),
 	}
 	for _, re := range patterns {
 		match := re.FindStringSubmatch(msg.Content)
@@ -68,6 +70,21 @@ func ParseScoreFromMessage(msg Message) (*Score, error) {
 			win = "N"
 		} else {
 			win = "Y"
+		}
+	case game == "Connections": 
+		re := regexp.MustCompile("(?s)[🟨🟩🟪🟦]+")
+		lines := re.FindAllString(msg.Content, 64)
+		count := 0
+		for _, line := range lines {
+			if line != "🟨🟨🟨🟨" && line != "🟩🟩🟩🟩" && line != "🟪🟪🟪🟪" && line != "🟦🟦🟦🟦" {
+				count++
+			}
+		}
+		score_value = strconv.Itoa(count)
+		if count < 4 {
+			win = "Y"
+		} else {
+			win = "N"
 		}
 	}
 

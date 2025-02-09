@@ -12,14 +12,6 @@ func TestScoreParser(t *testing.T) {
 	}
 	// TODO: Test cases for other games
 	//   [
-	//     "Connections \nPuzzle #51\n🟨🟨🟨🟨\n🟩🟩🟩🟩\n🟪🟪🟪🟪\n🟦🟦🟦🟦",
-	//     %{"game" => "Connections", "game_no" => "51", "score" => "0", "win" => true}
-	//   ],
-	//   [
-	//     "Connections Puzzle #59 🟦🟦🟩🟦 🟦🟦🟦🟩 🟦🟦🟨🟩 🟦🟦🟪🟩",
-	//     %{"game" => "Connections", "game_no" => "59", "score" => "4", "win" => false}
-	//   ],
-	//   [
 	//     "#Tradle #527 2/6 🟩🟩🟩🟩🟨 🟩🟩🟩🟩🟩 https://oec.world/en/tradle",
 	//     %{"game" => "Tradle", "game_no" => "527", "score" => "2", "win" => true}
 	//   ],
@@ -51,6 +43,14 @@ func TestScoreParser(t *testing.T) {
 		{
 			input:  "Daily Sequence Octordle #563 4️⃣5️⃣ 7️⃣8️⃣ 9️⃣🔟 🕚🕛 Score: 66",
 			output: Score{Game: "Daily Sequence Octordle", Score: "66", GameNumber: "563", Hardmode: "", Win: "Y"},
+		},
+		{
+			input:  "Connections \nPuzzle #51\n🟨🟨🟨🟨\n🟩🟩🟩🟩\n🟪🟪🟪🟪\n🟦🟦🟦🟦",
+			output: Score{Game: "Connections", Score: "0", GameNumber: "51", Hardmode: "", Win: "Y"},
+		},
+		{
+			input:  "Connections Puzzle #59 🟦🟦🟩🟦 🟦🟦🟦🟩 🟦🟦🟨🟩 🟦🟦🟪🟩",
+			output: Score{Game: "Connections", Score: "4", GameNumber: "59", Hardmode: "", Win: "N"},
 		},
 	}
 	for _, item := range data {
