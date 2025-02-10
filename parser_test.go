@@ -10,15 +10,6 @@ func TestScoreParser(t *testing.T) {
 		input  string
 		output Score
 	}
-	// TODO: Test cases for other games
-	//   [
-	//     "#Tradle #527 2/6 🟩🟩🟩🟩🟨 🟩🟩🟩🟩🟩 https://oec.world/en/tradle",
-	//     %{"game" => "Tradle", "game_no" => "527", "score" => "2", "win" => true}
-	//   ],
-	//   [
-	//     "Daily Dordle 0597 4&6/7 🟨🟨⬜⬜⬜ 🟨⬜🟨⬜⬜ ⬜⬜⬜⬜⬜ ⬜⬜⬜⬜⬜ ⬜⬜🟨🟨⬜ ⬜⬜⬜⬜⬜ 🟩🟩🟩🟩🟩 ⬜🟨⬜⬜⬜ ⬛⬛⬛⬛⬛ ⬜🟩🟨🟩🟩 ⬛⬛⬛⬛⬛ 🟩🟩🟩🟩🟩 zaratustra.itch.io/dordle",
-	//     %{"game" => "Daily Dordle", "game_no" => "0597", "score" => "10", "win" => true}
-	//   ]
 	data := [...]Case{
 		{
 			input:  "Wordle 771 3/6*\r\n\r\n⬛⬛⬛⬛🟩\r\n🟨🟩⬛⬛🟩\r\n🟩🟩🟩🟩🟩",
@@ -59,6 +50,14 @@ func TestScoreParser(t *testing.T) {
 		{
 			input:  "Connections Puzzle #59 🟦🟦🟩🟦 🟦🟦🟦🟩 🟦🟦🟨🟩 🟦🟦🟪🟩",
 			output: Score{Game: "Connections", Score: "4", GameNumber: "59", Win: "N"},
+		},
+		{
+			input:  "#Tradle #527 2/6 🟩🟩🟩🟩🟨 🟩🟩🟩🟩🟩 https://oec.world/en/tradle",
+			output: Score{Game: "Tradle", Score: "2", GameNumber: "527", Win: "Y"},
+		},
+		{
+			input:  "#Tradle #1072 X/6 🟩🟩🟩🟨⬜ 🟩🟩🟨⬜⬜ 🟩🟩🟩⬜⬜ 🟩🟩🟩🟩⬜ 🟩🟩🟩⬜⬜ 🟩🟩🟩⬜⬜ https://oec.world/en/games/tradle",
+			output: Score{Game: "Tradle", Score: "7", GameNumber: "1072", Win: "N"},
 		},
 	}
 	for _, item := range data {

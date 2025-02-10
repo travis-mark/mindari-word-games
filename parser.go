@@ -37,6 +37,7 @@ func ParseScoreFromMessage(msg Message) (*Score, error) {
 		regexp.MustCompile(`(?s)(?P<game>[A-Za-z ]*Dordle) (?P<game_no>\d+) (?P<left>\w)[&](?P<right>\w)\/7`),
 		regexp.MustCompile(`(?s)(?P<game>[A-Za-z ]*Octordle) #(?P<game_no>\d+).*Score[:] (?P<score>\d+)`),
 		regexp.MustCompile(`(?s)(?P<game>Connections).*Puzzle #(?P<game_no>\d+)`),
+		regexp.MustCompile(`(?s)(?P<game>Tradle) #(?P<game_no>\d+).*(?P<score>[123456X])\/6`),
 	}
 	var captures map[string]string
 	for _, re := range patterns {
@@ -64,7 +65,7 @@ func ParseScoreFromMessage(msg Message) (*Score, error) {
 		return nil, fmt.Errorf("Message did not parse: %s", msg.Content)
 	}
 	switch {
-	case game == "Wordle":
+	case game == "Wordle" || game == "Tradle":
 		if score_value == "X" {
 			score_value = "7"
 			win = "N"
