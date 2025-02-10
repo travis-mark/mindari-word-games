@@ -14,8 +14,19 @@ func main() {
 		log.Fatal(err)
 	}
 	channel := os.Getenv("CHANNEL")
-	// TODO: Incremental load
-	err = FetchFromDiscordAndPersist(Options{Channel: channel})
+	db, err := LoadDatabase()
+	if err != nil {
+		log.Fatal(err)
+	}
+	before, after, err := GetScoreIDRange(db) 
+	if before != "" && after != "" {
+		// Incremental load
+		err = FetchFromDiscordAndPersist(db, Options{Channel: channel, Before: before})
+		err = FetchFromDiscordAndPersist(db, Options{Channel: channel, After: after})
+	} else {
+		// Fetch all
+		err = FetchFromDiscordAndPersist(db, Options{Channel: channel})
+	}
 	if err != nil {
 		log.Fatal(err)
 	}

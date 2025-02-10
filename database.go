@@ -15,7 +15,7 @@ func LoadDatabase() (*sql.DB, error) {
 	// CREATE TABLE scores
 	_, err = db.Exec(`
 		CREATE TABLE IF NOT EXISTS scores (
-			id INTEGER PRIMARY KEY,
+			id TEXT UNIQUE,
 			username TEXT,
 			game TEXT,
 			game_number TEXT,
@@ -72,4 +72,16 @@ func AddScores(db *sql.DB, scores []Score) error {
 	}
 
 	return nil
+}
+
+// Grab oldest and newest id. Used to download incrementally.
+func GetScoreIDRange(db *sql.DB) (string, string, error) {
+	var oldest string
+	var newest string
+	err := db.QueryRow("SELECT MIN(id), MAX(id) FROM scores").Scan(&oldest, &newest)
+	if err != nil {
+		return "", "", err
+	} else {
+		return oldest, newest, nil
+	}
 }

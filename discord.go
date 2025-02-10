@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -32,14 +33,14 @@ type Options struct {
 // Fetch messages from Discord, parse for puzzles and save to DB
 //
 // Ref: https://discord.com/developers/docs/resources/message#get-channel-messages
-func FetchFromDiscordAndPersist(options Options) error {
+func FetchFromDiscordAndPersist(db *sql.DB, options Options) error {
 	// Create a new request
 	params := url.Values{}
 	if options.Before != "" {
 		params.Add("before", options.Before)
 	}
 	if options.After != "" {
-		params.Add("after", options.Before)
+		params.Add("after", options.After)
 	}
 	baseURL := fmt.Sprintf("https://discord.com/api/v9/channels/%s/messages", options.Channel)
 	url := baseURL + "?" + params.Encode()
@@ -80,7 +81,6 @@ func FetchFromDiscordAndPersist(options Options) error {
 	}
 
 	// Upsert to DB
-	db, err := LoadDatabase()
 	scores, err := ParseScores(messages)
 	if err != nil {
 		return err
@@ -97,13 +97,13 @@ func FetchFromDiscordAndPersist(options Options) error {
 		first_id := messages[count-1].ID
 		prev_page := options
 		prev_page.Before = first_id
-		FetchFromDiscordAndPersist(prev_page)
+		FetchFromDiscordAndPersist(db, prev_page)
 	}
 	if options.After != "" || options.Before == "" && options.After == "" {
 		last_id := messages[0].ID 
 		next_page := options
 		next_page.After = last_id
-		FetchFromDiscordAndPersist(next_page)
+		FetchFromDiscordAndPersist(db, next_page)
 	}
 
 	return nil
