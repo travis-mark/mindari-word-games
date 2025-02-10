@@ -14,7 +14,8 @@ func main() {
 		log.Fatal(err)
 	}
 	channel := os.Getenv("CHANNEL")
-	err = fetchFromDiscord(Options{Channel: channel})
+	// TODO: Incremental load
+	err = FetchFromDiscordAndPersist(Options{Channel: channel})
 	if err != nil {
 		log.Fatal(err)
 	}

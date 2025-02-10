@@ -100,7 +100,7 @@ func ParseScoreFromMessage(msg Message) (*Score, error) {
 		} else {
 			win = "Y"
 		}
-	case game == "Connections": 
+	case game == "Connections":
 		re := regexp.MustCompile("(?s)[🟨🟩🟪🟦]+")
 		lines := re.FindAllString(msg.Content, 64)
 		count := 0

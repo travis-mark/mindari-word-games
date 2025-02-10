@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"strconv"
 )
 
 // Message represents a Discord message
@@ -26,20 +25,21 @@ type Author struct {
 
 type Options struct {
 	Channel string // Discord Channel ID
-	Before  int    // Backward search pointer
-	After   int    // Forward search pointer
+	Before  string // Backward search pointer
+	After   string // Forward search pointer
 }
 
-// TODO: Handle more than 50 messages when message count is high enough
-func fetchFromDiscord(options Options) error {
+// Fetch messages from Discord, parse for puzzles and save to DB
+//
+// Ref: https://discord.com/developers/docs/resources/message#get-channel-messages
+func FetchFromDiscordAndPersist(options Options) error {
 	// Create a new request
 	params := url.Values{}
-	params.Add("limit", "50")
-	if options.Before > 0 {
-		params.Add("before", strconv.Itoa(options.Before))
+	if options.Before != "" {
+		params.Add("before", options.Before)
 	}
-	if options.After > 0 {
-		params.Add("after", strconv.Itoa(options.After))
+	if options.After != "" {
+		params.Add("after", options.Before)
 	}
 	baseURL := fmt.Sprintf("https://discord.com/api/v9/channels/%s/messages", options.Channel)
 	url := baseURL + "?" + params.Encode()
@@ -73,6 +73,11 @@ func fetchFromDiscord(options Options) error {
 	if err != nil {
 		return err
 	}
+	count := len(messages)
+
+	if count == 0 {
+		return nil
+	}
 
 	// Upsert to DB
 	db, err := LoadDatabase()
@@ -84,5 +89,22 @@ func fetchFromDiscord(options Options) error {
 	if err != nil {
 		return err
 	}
+	fmt.Printf("%d records updated (%s - %s)\n", count, messages[0].ID, messages[len(messages)-1].ID)
+
+	// Check other pages
+	// Unsure if assumption about message order is safe
+	if options.Before != "" || options.Before == "" && options.After == "" {
+		first_id := messages[count-1].ID
+		prev_page := options
+		prev_page.Before = first_id
+		FetchFromDiscordAndPersist(prev_page)
+	}
+	if options.After != "" || options.Before == "" && options.After == "" {
+		last_id := messages[0].ID 
+		next_page := options
+		next_page.After = last_id
+		FetchFromDiscordAndPersist(next_page)
+	}
+
 	return nil
 }
