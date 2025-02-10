@@ -34,12 +34,15 @@ func ParseScoreFromMessage(msg Message) (*Score, error) {
 	score_value := lines[0]
 	patterns := []*regexp.Regexp{
 		regexp.MustCompile(`(?P<game>Wordle) (?P<game_no>[\d,]+) (?P<score>\w)\/6(?P<hardmode>[*]?)`),
+		regexp.MustCompile(`(?s)(?P<game>[A-Za-z ]*Dordle) (?P<game_no>\d+) (?P<left>\w)[&](?P<right>\w)\/7`),
 		regexp.MustCompile(`(?s)(?P<game>[A-Za-z ]*Octordle) #(?P<game_no>\d+).*Score[:] (?P<score>\d+)`),
 		regexp.MustCompile(`(?s)(?P<game>Connections).*Puzzle #(?P<game_no>\d+)`),
 	}
+	var captures map[string]string
 	for _, re := range patterns {
 		match := re.FindStringSubmatch(msg.Content)
 		if match != nil {
+			captures = make(map[string]string)
 			names := re.SubexpNames()
 			for i, name := range names {
 				switch name {
@@ -52,9 +55,13 @@ func ParseScoreFromMessage(msg Message) (*Score, error) {
 				case "score":
 					score_value = match[i]
 				}
+				captures[name] = match[i]
 			}
 			break // patterns
 		}
+	}
+	if captures == nil {
+		return nil, fmt.Errorf("Message did not parse: %s", msg.Content)
 	}
 	switch {
 	case game == "Wordle":
@@ -64,6 +71,28 @@ func ParseScoreFromMessage(msg Message) (*Score, error) {
 		} else {
 			win = "Y"
 		}
+	case strings.Contains(game, "Dordle"):
+		left := captures["left"]
+		right := captures["right"]
+		value := 0
+		if left == "X" {
+			value += 7
+			win = "N"
+		} else {
+			left_value, _ := strconv.Atoi(left)
+			value += left_value
+		}
+		if right == "X" {
+			value += 7
+			win = "N"
+		} else {
+			right_value, _ := strconv.Atoi(right)
+			value += right_value
+		}
+		if win == "" {
+			win = "Y"
+		}
+		score_value = strconv.Itoa(value)
 	case strings.Contains(game, "Octordle"):
 		if strings.Contains(msg.Content, "🟥") {
 			win = "N"
@@ -85,8 +114,6 @@ func ParseScoreFromMessage(msg Message) (*Score, error) {
 		} else {
 			win = "N"
 		}
-	default:
-		return nil, fmt.Errorf("Message did not parse: %s", msg.Content)
 	}
 
 	score := Score{
