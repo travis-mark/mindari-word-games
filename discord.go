@@ -100,7 +100,7 @@ func FetchFromDiscordAndPersist(db *sql.DB, options Options) error {
 		FetchFromDiscordAndPersist(db, prev_page)
 	}
 	if options.After != "" || options.Before == "" && options.After == "" {
-		last_id := messages[0].ID 
+		last_id := messages[0].ID
 		next_page := options
 		next_page.After = last_id
 		FetchFromDiscordAndPersist(db, next_page)

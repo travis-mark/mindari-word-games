@@ -18,7 +18,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	before, after, err := GetScoreIDRange(db) 
+	before, after, err := GetScoreIDRange(db)
 	if before != "" && after != "" {
 		// Incremental load
 		err = FetchFromDiscordAndPersist(db, Options{Channel: channel, Before: before})
