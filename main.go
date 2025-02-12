@@ -2,8 +2,10 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"github.com/joho/godotenv"
 )
@@ -27,6 +29,21 @@ func LoadDataFromChannel(db *sql.DB, channel string) error {
 	return nil
 }
 
+func MonitorChannel(db *sql.DB, channel string) error {
+	ticker := time.NewTicker(1 * time.Hour)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ticker.C:
+			err := LoadDataFromChannel(db, channel)
+			if err != nil {
+				return err
+			}
+		}
+	}
+}
+
 func main() {
 	// Load .env to get secrets
 	err := godotenv.Load()
@@ -46,7 +63,7 @@ func main() {
 	}
 	switch cmd {
 	case "channel":
-		err = LoadDataFromChannel(db, channel)
+		err = MonitorChannel(db, channel)
 	case "stats":
 		stats, err := GetStats(db, "Wordle")
 		if err != nil {
@@ -54,7 +71,7 @@ func main() {
 		}
 		PrintStats(stats)
 	default:
-		log.Fatal("Command %s not found", cmd)
+		log.Fatal(fmt.Sprintf("Command %s not found", cmd))
 	}
 	if err != nil {
 		log.Fatal(err)

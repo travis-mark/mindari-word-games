@@ -75,7 +75,6 @@ func FetchFromDiscordAndPersist(db *sql.DB, options Options) error {
 		return err
 	}
 	count := len(messages)
-
 	if count == 0 {
 		return nil
 	}
