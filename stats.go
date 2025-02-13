@@ -13,6 +13,30 @@ type Stats struct {
 	Highest  float32
 }
 
+func GetGames(db *sql.DB) ([]string, error) {
+	sql := `
+		SELECT DISTINCT game
+		FROM scores
+	`
+	rows, err := db.Query(sql)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to get game: %v", err)
+	}
+	var games []string
+	for rows.Next() {
+		var game string
+		err := rows.Scan(&game)
+		if err != nil {
+			return nil, err
+		}
+		games = append(games, game)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+	return games, nil
+}
+
 func GetStats(db *sql.DB, game string) ([]Stats, error) {
 	sql := `
 		SELECT username, MIN(score), AVG(score), MAX(score)

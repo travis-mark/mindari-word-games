@@ -64,6 +64,8 @@ func main() {
 	switch cmd {
 	case "channel":
 		err = MonitorChannel(db, channel)
+	case "serve":
+		err = startServer(db)
 	case "stats":
 		stats, err := GetStats(db, "Wordle")
 		if err != nil {
