@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-var templates = template.Must(template.ParseFiles("stats.template.html"))
+var templates = template.Must(template.ParseFiles("stats.tpml"))
 
 type WordGameServer struct {
 	db *sql.DB
@@ -38,15 +38,15 @@ func (svr *WordGameServer) statsHandler(w http.ResponseWriter, r *http.Request) 
 		Games:       games,
 		Stats:       stats,
 	}
-	err = templates.ExecuteTemplate(w, "stats.template.html", vm)
+	err = templates.ExecuteTemplate(w, "stats.tpml", vm)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 }
 
-func startServer(db *sql.DB) error {
+func startServer(db *sql.DB, addr string) error {
 	svr := WordGameServer{db: db}
 	http.HandleFunc("/stats", svr.statsHandler)
-	return http.ListenAndServe(":8000", nil)
+	return http.ListenAndServe(addr, nil)
 }

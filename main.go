@@ -63,11 +63,15 @@ func main() {
 	}
 	switch cmd {
 	case "channel":
+		log.Printf("Monitoring channel <%s>", channel)
 		err = MonitorChannel(db, channel)
 	case "rescan":
+		log.Printf("Full rescan of channel <%s>", channel)
 		err = FetchFromDiscordAndPersist(db, Options{Channel: channel})
 	case "serve":
-		err = startServer(db)
+		addr := ":8000"
+		log.Printf("Starting server on %s", addr)
+		err = startServer(db, addr)
 	case "stats":
 		stats, err := GetStats(db, "Wordle")
 		if err != nil {
