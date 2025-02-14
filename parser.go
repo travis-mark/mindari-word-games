@@ -103,17 +103,20 @@ func ParseScoreFromMessage(msg Message) (*Score, error) {
 	case game == "Connections":
 		re := regexp.MustCompile("(?s)[🟨🟩🟪🟦]+")
 		lines := re.FindAllString(msg.Content, 64)
-		count := 0
+		match := 0
+		total := 0
 		for _, line := range lines {
-			if line != "🟨🟨🟨🟨" && line != "🟩🟩🟩🟩" && line != "🟪🟪🟪🟪" && line != "🟦🟦🟦🟦" {
-				count++
+			if line == "🟨🟨🟨🟨" || line == "🟩🟩🟩🟩" || line == "🟪🟪🟪🟪" || line == "🟦🟦🟦🟦" {
+				match++
 			}
+			total++
 		}
-		score_value = strconv.Itoa(count)
-		if count < 4 {
+		if match == 4 {
 			win = "Y"
+			score_value = strconv.Itoa(total)
 		} else {
 			win = "N"
+			score_value = "7"
 		}
 	}
 

@@ -64,6 +64,8 @@ func main() {
 	switch cmd {
 	case "channel":
 		err = MonitorChannel(db, channel)
+	case "rescan":
+		err = FetchFromDiscordAndPersist(db, Options{Channel: channel})
 	case "serve":
 		err = startServer(db)
 	case "stats":

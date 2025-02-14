@@ -45,11 +45,19 @@ func TestScoreParser(t *testing.T) {
 		},
 		{
 			input:  "Connections \nPuzzle #51\n🟨🟨🟨🟨\n🟩🟩🟩🟩\n🟪🟪🟪🟪\n🟦🟦🟦🟦",
-			output: Score{Game: "Connections", Score: "0", GameNumber: "51", Win: "Y"},
+			output: Score{Game: "Connections", Score: "4", GameNumber: "51", Win: "Y"},
 		},
 		{
 			input:  "Connections Puzzle #59 🟦🟦🟩🟦 🟦🟦🟦🟩 🟦🟦🟨🟩 🟦🟦🟪🟩",
-			output: Score{Game: "Connections", Score: "4", GameNumber: "59", Win: "N"},
+			output: Score{Game: "Connections", Score: "7", GameNumber: "59", Win: "N"},
+		},
+		{
+			input:  "Connections Puzzle #608 🟪🟨🟦🟦 🟪🟪🟪🟪 🟨🟦🟦🟦 🟩🟩🟩🟩 🟨🟨🟨🟨 🟦🟦🟦🟦",
+			output: Score{Game: "Connections", Score: "6", GameNumber: "608", Win: "Y"},
+		},
+		{
+			input:  "Connections Puzzle #613 🟨🟩🟨🟨 🟨🟨🟨🟨 🟦🟪🟦🟦 🟦🟪🟪🟦 🟩🟩🟩🟩 🟦🟪🟪🟦",
+			output: Score{Game: "Connections", Score: "7", GameNumber: "613", Win: "N"},
 		},
 		{
 			input:  "#Tradle #527 2/6 🟩🟩🟩🟩🟨 🟩🟩🟩🟩🟩 https://oec.world/en/tradle",
