@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"regexp"
 	"strconv"
 	"strings"
@@ -133,13 +134,16 @@ func ParseScoreFromMessage(msg Message) (*Score, error) {
 	return &score, nil
 }
 
-func ParseScores(messages []Message) ([]Score, error) {
+func ParseScores(messages []Message, out *log.Logger) ([]Score, error) {
+	if out == nil {
+		return ParseScores(messages, log.Default())
+	}
 	scores := make([]Score, 0, len(messages))
 
 	for _, msg := range messages {
 		score, err := ParseScoreFromMessage(msg)
 		if err != nil {
-			fmt.Printf("%v\n", err)
+			out.Printf("%v\n", err)
 			continue
 		}
 		scores = append(scores, *score)
