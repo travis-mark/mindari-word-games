@@ -29,6 +29,11 @@ func LoadDataFromChannel(db *sql.DB, channel string) error {
 }
 
 func MonitorChannel(db *sql.DB, channel string) error {
+	err := LoadDataFromChannel(db, channel)
+	if err != nil {
+		return err
+	}
+
 	ticker := time.NewTicker(1 * time.Hour)
 	defer ticker.Stop()
 
