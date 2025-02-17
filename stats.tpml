@@ -29,6 +29,7 @@
             <thead>
                 <tr>
                     <th>Username</th>
+                    <th>Games</th>
                     <th>Lowest</th>
                     <th>Average</th>
                     <th>Highest</th>
@@ -38,6 +39,7 @@
                 {{range .Stats}}
                 <tr>
                     <td>{{.Username}}</td>
+                    <td>{{.Count}}</td>
                     <td>{{.Lowest}}</td>
                     <td>{{.Average}}</td>
                     <td>{{.Highest}}</td>

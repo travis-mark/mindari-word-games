@@ -8,6 +8,7 @@ import (
 
 type Stats struct {
 	Username string
+	Count    int
 	Lowest   float32
 	Average  float32
 	Highest  float32
@@ -39,7 +40,7 @@ func GetGames(db *sql.DB) ([]string, error) {
 
 func GetStats(db *sql.DB, game string) ([]Stats, error) {
 	sql := `
-		SELECT username, MIN(score), AVG(score), MAX(score)
+		SELECT username, COUNT(id), MIN(score), AVG(score), MAX(score)
 		FROM scores
 		WHERE game = ?
 		GROUP BY username
@@ -54,6 +55,7 @@ func GetStats(db *sql.DB, game string) ([]Stats, error) {
 		var stat Stats
 		err := rows.Scan(
 			&stat.Username,
+			&stat.Count,
 			&stat.Lowest,
 			&stat.Average,
 			&stat.Highest,
