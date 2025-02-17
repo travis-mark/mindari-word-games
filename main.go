@@ -2,12 +2,11 @@ package main
 
 import (
 	"database/sql"
+	"flag"
 	"fmt"
 	"log"
 	"os"
 	"time"
-
-	"github.com/joho/godotenv"
 )
 
 func LoadDataFromChannel(db *sql.DB, channel string) error {
@@ -45,39 +44,43 @@ func MonitorChannel(db *sql.DB, channel string) error {
 }
 
 func main() {
-	// Load .env to get secrets
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal(err)
+	args := os.Args[1:]
+	if len(args) == 0 || args[0][0] == '-' {
+		args = append([]string{"serve"}, args...)
 	}
-	channel := os.Getenv("CHANNEL")
+	cmd := args[0]
 	db, err := LoadDatabase()
-	if err != nil {
-		log.Fatal(err)
-	}
-	cmd := ""
-	if len(os.Args) < 2 {
-		cmd = "serve"
-	} else {
-		cmd = os.Args[1]
-	}
 	switch cmd {
-	case "channel":
-		log.Printf("Monitoring channel <%s>", channel)
-		err = MonitorChannel(db, channel)
+	case "monitor":
+		cmd := flag.NewFlagSet("monitor", flag.ExitOnError)
+		channel := cmd.String("channel", getDefaultChannel(), "Channel ID to monitor")
+		cmd.Parse(args[1:])
+		log.Printf("Monitoring channel <%s>", *channel)
+		err = MonitorChannel(db, *channel)
 	case "rescan":
-		err = FetchFromDiscordAndPersist(db, nil, Options{Channel: channel})
+		cmd := flag.NewFlagSet("rescan", flag.ExitOnError)
+		channel := cmd.String("channel", getDefaultChannel(), "Channel ID to scan")
+		cmd.Parse(args[1:])
+		log.Printf("Full rescan of channel <%s>", *channel)
+		err = FetchFromDiscordAndPersist(db, nil, Options{Channel: *channel})
 	case "serve":
-		addr := ":7654"
+		cmd := flag.NewFlagSet("serve", flag.ExitOnError)
+		port := cmd.String("port", "7654", "Port to run server")
+		cmd.Parse(args[1:])
+		addr := fmt.Sprintf(":%s", *port)
+		log.Printf("Starting server on %s", addr)
 		err = startServer(db, addr)
 	case "stats":
-		stats, err := GetStats(db, "Wordle")
+		cmd := flag.NewFlagSet("serve", flag.ExitOnError)
+		game := cmd.String("game", "Wordle", "Game to print stats")
+		cmd.Parse(args[1:])
+		stats, err := GetStats(db, *game)
 		if err != nil {
 			log.Fatal(err)
 		}
 		PrintStats(stats)
 	default:
-		log.Fatal(fmt.Sprintf("Command %s not found", cmd))
+		help()
 	}
 	if err != nil {
 		log.Fatal(err)

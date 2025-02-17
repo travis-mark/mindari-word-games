@@ -82,6 +82,5 @@ func startServer(db *sql.DB, addr string) error {
 	http.HandleFunc("/scan/", svr.scanHandler)
 	http.HandleFunc("/stats/", svr.statsHandler)
 	http.HandleFunc("/", rootHandler)
-	log.Printf("Starting server on %s", addr)
 	return http.ListenAndServe(addr, nil)
 }

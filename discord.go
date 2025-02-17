@@ -8,7 +8,6 @@ import (
 	"log"
 	"net/http"
 	"net/url"
-	"os"
 )
 
 // Message represents a Discord message
@@ -43,11 +42,10 @@ func FetchFromDiscordAndPersist(db *sql.DB, out *log.Logger, options Options) er
 	if options.Before != "" {
 		params.Add("before", options.Before)
 		out.Printf("Scan channel <%s> before %s", options.Channel, options.Before)
-	} else if options.After != "" {
+	}
+	if options.After != "" {
 		params.Add("after", options.After)
 		out.Printf("Scan channel <%s> after %s", options.Channel, options.After)
-	} else {
-		out.Printf("Full rescan of channel <%s>", options.Channel)
 	}
 	baseURL := fmt.Sprintf("https://discord.com/api/v9/channels/%s/messages", options.Channel)
 	url := baseURL + "?" + params.Encode()
@@ -55,8 +53,7 @@ func FetchFromDiscordAndPersist(db *sql.DB, out *log.Logger, options Options) er
 	if err != nil {
 		return err
 	}
-	authorization := os.Getenv("AUTHORIZATION")
-	req.Header.Set("Authorization", authorization)
+	req.Header.Set("Authorization", getAuthorization())
 	req.Header.Set("User-Agent", "Mindari Word Games (0.0-alpha)")
 
 	// Create HTTP client and execute request
