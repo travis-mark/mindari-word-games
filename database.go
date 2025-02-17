@@ -32,6 +32,7 @@ func LoadDatabase() (*sql.DB, error) {
 }
 
 // Add scores to database
+// TODO: Handle duplicate posting (Mel Wordle 1,336)
 func AddScores(db *sql.DB, scores []Score) error {
 	// Prepare the upsert statement
 	stmt, err := db.Prepare(`
