@@ -72,8 +72,8 @@ func GetStats(db *sql.DB, game string) ([]Stats, error) {
 }
 
 func PrintStats(stats []Stats) {
-	fmt.Printf("Username\tLowest\tAverage\tHighest\n")
+	fmt.Printf("Username\tGames\tLowest\tAverage\tHighest\n")
 	for _, stat := range stats {
-		fmt.Printf("%s\t%f\t%f\t%f\n", stat.Username, stat.Lowest, stat.Average, stat.Highest)
+		fmt.Printf("%s\t%d\t%0.0f\t%0.2f\t%0.0f\n", stat.Username, stat.Count, stat.Lowest, stat.Average, stat.Highest)
 	}
 }

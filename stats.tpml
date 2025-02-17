@@ -41,7 +41,7 @@
                     <td>{{.Username}}</td>
                     <td>{{.Count}}</td>
                     <td>{{.Lowest}}</td>
-                    <td>{{.Average}}</td>
+                    <td>{{ printf "%0.2f" .Average }}</td>
                     <td>{{.Highest}}</td>
                 </tr>
                 {{end}}
