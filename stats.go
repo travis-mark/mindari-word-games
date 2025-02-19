@@ -44,7 +44,7 @@ func GetStats(db *sql.DB, game string) ([]Stats, error) {
 		FROM scores
 		WHERE game = ?
 		GROUP BY username
-		ORDER BY 3
+		ORDER BY 4
 	`
 	rows, err := db.Query(sql, game)
 	if err != nil {

@@ -22,7 +22,8 @@ func LoadDatabase() (*sql.DB, error) {
 			score TEXT,
             content TEXT,
 			win TEXT,
-			hardmode TEXT
+			hardmode TEXT,
+			UNIQUE (username, game, game_number, score)
 		)
 	`)
 	if err != nil {
@@ -32,20 +33,11 @@ func LoadDatabase() (*sql.DB, error) {
 }
 
 // Add scores to database
-// TODO: Handle duplicate posting (Mel Wordle 1,336)
 func AddScores(db *sql.DB, scores []Score) error {
 	// Prepare the upsert statement
 	stmt, err := db.Prepare(`
-		INSERT INTO scores (id, username, game, game_number, score, content, win, hardmode)
+		INSERT OR REPLACE INTO scores (id, username, game, game_number, score, content, win, hardmode)
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-		ON CONFLICT(id) DO UPDATE SET
-			username = excluded.username,
-			game = excluded.game,
-			game_number = excluded.game_number,
-			score = excluded.score,
-            content = excluded.content,
-			win = excluded.win,
-			hardmode = excluded.hardmode
 	`)
 	if err != nil {
 		return fmt.Errorf("Failed to prepare statement: %v", err)
