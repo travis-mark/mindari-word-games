@@ -56,6 +56,9 @@ func main() {
 	cmd := args[0]
 	db, err := LoadDatabase()
 	switch cmd {
+	case "bot":
+		log.Printf("Starting bot...\n")
+		ConnectToDiscord()
 	case "monitor":
 		cmd := flag.NewFlagSet("monitor", flag.ExitOnError)
 		channel := cmd.String("channel", getDefaultChannel(), "Channel ID to monitor")
