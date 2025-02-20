@@ -6,6 +6,7 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
+// TODO: Restructure / make this private
 func LoadDatabase() (*sql.DB, error) {
 	// Open database connection
 	db, err := sql.Open("sqlite3", "./scores.db")
@@ -32,9 +33,25 @@ func LoadDatabase() (*sql.DB, error) {
 	return db, nil
 }
 
+var _db *sql.DB
+
+// Get a connection to database. Reuses a shared connection if one is available.
+func GetDatabase() (*sql.DB, error) {
+	if _db != nil {
+		return _db, nil
+	}
+	db, err := LoadDatabase()
+	_db = db
+	return db, err
+}
+
 // Add scores to database
-func AddScores(db *sql.DB, scores []Score) error {
-	// Prepare the upsert statement
+// TODO: Drop content column from DB
+func AddScores(scores []Score) error {
+	db, err := GetDatabase()
+	if err != nil {
+		return err
+	}
 	stmt, err := db.Prepare(`
 		INSERT OR REPLACE INTO scores (id, username, game, game_number, score, content, win, hardmode)
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?)

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -33,9 +32,9 @@ type Options struct {
 // Fetch messages from Discord, parse for puzzles and save to DB
 //
 // Ref: https://discord.com/developers/docs/resources/message#get-channel-messages
-func FetchFromDiscordAndPersist(db *sql.DB, out *log.Logger, options Options) error {
+func FetchFromDiscordAndPersist(out *log.Logger, options Options) error {
 	if out == nil {
-		return FetchFromDiscordAndPersist(db, log.Default(), options)
+		return FetchFromDiscordAndPersist(log.Default(), options)
 	}
 	// Create a new request
 	params := url.Values{}
@@ -53,7 +52,11 @@ func FetchFromDiscordAndPersist(db *sql.DB, out *log.Logger, options Options) er
 	if err != nil {
 		return err
 	}
-	req.Header.Set("Authorization", getAuthorization())
+	authorization, err := getAuthorization()
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Authorization", authorization)
 	req.Header.Set("User-Agent", "Mindari Word Games (0.0-alpha)")
 
 	// Create HTTP client and execute request
@@ -83,13 +86,11 @@ func FetchFromDiscordAndPersist(db *sql.DB, out *log.Logger, options Options) er
 		out.Printf("No new records found.\n")
 		return nil
 	}
-
-	// Upsert to DB
 	scores, err := ParseScores(messages, out)
 	if err != nil {
 		return err
 	}
-	err = AddScores(db, scores)
+	err = AddScores(scores)
 	if err != nil {
 		return err
 	}
@@ -101,13 +102,13 @@ func FetchFromDiscordAndPersist(db *sql.DB, out *log.Logger, options Options) er
 		first_id := messages[count-1].ID
 		prev_page := options
 		prev_page.Before = first_id
-		FetchFromDiscordAndPersist(db, out, prev_page)
+		FetchFromDiscordAndPersist(out, prev_page)
 	}
 	if options.After != "" || options.Before == "" && options.After == "" {
 		last_id := messages[0].ID
 		next_page := options
 		next_page.After = last_id
-		FetchFromDiscordAndPersist(db, out, next_page)
+		FetchFromDiscordAndPersist(out, next_page)
 	}
 
 	return nil

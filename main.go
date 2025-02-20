@@ -16,11 +16,11 @@ func LoadDataFromChannel(db *sql.DB, channel string) error {
 	}
 	if before != "" && after != "" {
 		// Incremental load
-		err = FetchFromDiscordAndPersist(db, nil, Options{Channel: channel, Before: before})
-		err = FetchFromDiscordAndPersist(db, nil, Options{Channel: channel, After: after})
+		err = FetchFromDiscordAndPersist(nil, Options{Channel: channel, Before: before})
+		err = FetchFromDiscordAndPersist(nil, Options{Channel: channel, After: after})
 	} else {
 		// Fetch all
-		err = FetchFromDiscordAndPersist(db, nil, Options{Channel: channel})
+		err = FetchFromDiscordAndPersist(nil, Options{Channel: channel})
 	}
 	if err != nil {
 		return err
@@ -57,7 +57,6 @@ func main() {
 	db, err := LoadDatabase()
 	switch cmd {
 	case "bot":
-		log.Printf("Starting bot...\n")
 		ConnectToDiscord()
 	case "monitor":
 		cmd := flag.NewFlagSet("monitor", flag.ExitOnError)
@@ -70,7 +69,7 @@ func main() {
 		channel := cmd.String("channel", getDefaultChannel(), "Channel ID to scan")
 		cmd.Parse(args[1:])
 		log.Printf("Full rescan of channel <%s>", *channel)
-		err = FetchFromDiscordAndPersist(db, nil, Options{Channel: *channel})
+		err = FetchFromDiscordAndPersist(nil, Options{Channel: *channel})
 	case "serve":
 		cmd := flag.NewFlagSet("serve", flag.ExitOnError)
 		port := cmd.String("port", "7654", "Port to run server")

@@ -15,28 +15,40 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if m.ChannelID != getDefaultChannel() {
 		return
 	}
-	
+
 	// TODO: Change parser to use discordgo's struct
 	score, err := ParseScoreFromMessage(Message{
-		ID: m.ID,
+		ID:   m.ID,
 		Type: int(m.Type),
 		Author: Author{
-			ID: m.Author.ID,
+			ID:       m.Author.ID,
 			Username: m.Author.Username,
 		},
 		Content: m.Content,
 	})
 
 	if err != nil {
-		log.Printf("parser error: %v, %s\n", err, m.Content)
-	} else {
-		log.Printf("parsed score: %v\n", score)
+		log.Printf("Parser error: %v, %v\n", err, m)
+		return
 	}
+
+	err = AddScores([]Score{*score})
+	if err != nil {
+		log.Printf("AddScores error: %v, %v\n", err, m)
+		return
+	}
+
+	log.Printf("Added score from bot: %s %s %s %s\n", score.Username, score.Game, score.GameNumber, score.Score)
 }
 
 func ConnectToDiscord() {
-	discord, err := discordgo.New(getAuthorization())
+	authorization, err := getAuthorization()
+	if err != nil {
+		log.Fatal("Error getting authorization: ", err)
+	}
+	discord, err := discordgo.New(authorization)
 	discord.Identify.Intents = discordgo.IntentGuilds | discordgo.IntentsGuildMessages
+	log.Printf("Starting bot...\n")
 	err = discord.Open()
 	if err != nil {
 		log.Fatal("Error opening Discord session: ", err)
@@ -45,5 +57,6 @@ func ConnectToDiscord() {
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
 	<-sc
+	log.Printf("Stopping bot...\n")
 	discord.Close()
 }

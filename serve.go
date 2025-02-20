@@ -41,7 +41,7 @@ func (svr *WordGameServer) scanHandler(w http.ResponseWriter, r *http.Request) {
 	out := log.New(&buffer, "", log.Ltime)
 	channel := pathSegments[2]
 	if channel != "" {
-		FetchFromDiscordAndPersist(svr.db, out, Options{Channel: channel})
+		FetchFromDiscordAndPersist(out, Options{Channel: channel})
 	}
 	err := templates.ExecuteTemplate(w, "scan.tpml", buffer.String())
 	if err != nil {

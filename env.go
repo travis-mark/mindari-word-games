@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 
@@ -31,10 +32,16 @@ func getDefaultChannel() string {
 	return os.Getenv("CHANNEL")
 }
 
-// Get authorization token from .env. Used while a single token is used per bot.
-//
-// NOTE: Because this is called optimistically, it returns "" rather than an error if CHANNEL does not exist.
-func getAuthorization() string {
+// Get authorization token from .env.
+func getAuthorization() (string, error) {
 	loadEnvironmentIfNeeded()
-	return os.Getenv("AUTHORIZATION")
+	bearer := os.Getenv("BEARER")
+	if bearer != "" {
+		return "Bearer " + bearer, nil
+	}
+	bot := os.Getenv("BOT")
+	if bot != "" {
+		return "Bot " + bot, nil
+	}
+	return "", fmt.Errorf("No authorization found in BEARER or BOT. Check your environment or .env file.")
 }
