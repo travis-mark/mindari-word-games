@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"net/url"
 )
@@ -32,19 +31,16 @@ type Options struct {
 // Fetch messages from Discord, parse for puzzles and save to DB
 //
 // Ref: https://discord.com/developers/docs/resources/message#get-channel-messages
-func FetchFromDiscordAndPersist(out *log.Logger, options Options) error {
-	if out == nil {
-		return FetchFromDiscordAndPersist(log.Default(), options)
-	}
+func FetchFromDiscordAndPersist(options Options) error {
 	// Create a new request
 	params := url.Values{}
 	if options.Before != "" {
 		params.Add("before", options.Before)
-		out.Printf("Scan channel <%s> before %s", options.Channel, options.Before)
+		logPrintln("Scan channel <%s> before %s", options.Channel, options.Before)
 	}
 	if options.After != "" {
 		params.Add("after", options.After)
-		out.Printf("Scan channel <%s> after %s", options.Channel, options.After)
+		logPrintln("Scan channel <%s> after %s", options.Channel, options.After)
 	}
 	baseURL := fmt.Sprintf("https://discord.com/api/v9/channels/%s/messages", options.Channel)
 	url := baseURL + "?" + params.Encode()
@@ -83,10 +79,10 @@ func FetchFromDiscordAndPersist(out *log.Logger, options Options) error {
 	}
 	count := len(messages)
 	if count == 0 {
-		out.Printf("No new records found.\n")
+		logPrintln("No new records found.")
 		return nil
 	}
-	scores, err := ParseScores(messages, out)
+	scores, err := ParseScores(messages)
 	if err != nil {
 		return err
 	}
@@ -94,7 +90,7 @@ func FetchFromDiscordAndPersist(out *log.Logger, options Options) error {
 	if err != nil {
 		return err
 	}
-	out.Printf("%d records updated (%s - %s)\n", count, messages[0].ID, messages[len(messages)-1].ID)
+	logPrintln("%d records updated (%s - %s)", count, messages[0].ID, messages[len(messages)-1].ID)
 
 	// Check other pages
 	// Unsure if assumption about message order is safe
@@ -102,13 +98,13 @@ func FetchFromDiscordAndPersist(out *log.Logger, options Options) error {
 		first_id := messages[count-1].ID
 		prev_page := options
 		prev_page.Before = first_id
-		FetchFromDiscordAndPersist(out, prev_page)
+		FetchFromDiscordAndPersist(prev_page)
 	}
 	if options.After != "" || options.Before == "" && options.After == "" {
 		last_id := messages[0].ID
 		next_page := options
 		next_page.After = last_id
-		FetchFromDiscordAndPersist(out, next_page)
+		FetchFromDiscordAndPersist(next_page)
 	}
 
 	return nil

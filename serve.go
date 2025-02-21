@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"fmt"
 	"html/template"
-	"log"
 	"net/http"
 	"strings"
 )
@@ -38,10 +37,9 @@ func (svr *WordGameServer) scanHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Errorf("Channel ID missing from path /scan/<channel_id>").Error(), http.StatusBadRequest)
 	}
 	var buffer bytes.Buffer
-	out := log.New(&buffer, "", log.Ltime)
 	channel := pathSegments[2]
 	if channel != "" {
-		FetchFromDiscordAndPersist(out, Options{Channel: channel})
+		FetchFromDiscordAndPersist(Options{Channel: channel})
 	}
 	err := templates.ExecuteTemplate(w, "scan.tpml", buffer.String())
 	if err != nil {

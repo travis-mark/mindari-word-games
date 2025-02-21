@@ -16,11 +16,11 @@ func LoadDataFromChannel(db *sql.DB, channel string) error {
 	}
 	if before != "" && after != "" {
 		// Incremental load
-		err = FetchFromDiscordAndPersist(nil, Options{Channel: channel, Before: before})
-		err = FetchFromDiscordAndPersist(nil, Options{Channel: channel, After: after})
+		err = FetchFromDiscordAndPersist(Options{Channel: channel, Before: before})
+		err = FetchFromDiscordAndPersist(Options{Channel: channel, After: after})
 	} else {
 		// Fetch all
-		err = FetchFromDiscordAndPersist(nil, Options{Channel: channel})
+		err = FetchFromDiscordAndPersist(Options{Channel: channel})
 	}
 	if err != nil {
 		return err
@@ -62,20 +62,20 @@ func main() {
 		cmd := flag.NewFlagSet("monitor", flag.ExitOnError)
 		channel := cmd.String("channel", getDefaultChannel(), "Channel ID to monitor")
 		cmd.Parse(args[1:])
-		log.Printf("Monitoring channel <%s>", *channel)
+		logPrintln("Monitoring channel <%s>", *channel)
 		err = MonitorChannel(db, *channel)
 	case "rescan":
 		cmd := flag.NewFlagSet("rescan", flag.ExitOnError)
 		channel := cmd.String("channel", getDefaultChannel(), "Channel ID to scan")
 		cmd.Parse(args[1:])
-		log.Printf("Full rescan of channel <%s>", *channel)
-		err = FetchFromDiscordAndPersist(nil, Options{Channel: *channel})
+		logPrintln("Full rescan of channel <%s>", *channel)
+		err = FetchFromDiscordAndPersist(Options{Channel: *channel})
 	case "serve":
 		cmd := flag.NewFlagSet("serve", flag.ExitOnError)
 		port := cmd.String("port", "7654", "Port to run server")
 		cmd.Parse(args[1:])
 		addr := fmt.Sprintf(":%s", *port)
-		log.Printf("Starting server on %s", addr)
+		logPrintln("Starting server on %s", addr)
 		err = startServer(db, addr)
 	case "stats":
 		cmd := flag.NewFlagSet("serve", flag.ExitOnError)

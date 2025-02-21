@@ -1,4 +1,4 @@
-# Mindari Word Games
+# Mindari's Word Games
 
 Mindari's Word Games is a tool to extract Wordle, etc... scores from a shared Discord channel.
 
@@ -14,4 +14,4 @@ Mindari's Word Games is a tool to extract Wordle, etc... scores from a shared Di
         stats       Print stats to standard output to use for custom graphs
 
 
-NOTE: The tool is named after a Bard character I played for D&D where this all started. It may change in the future.
+I named the tool after a bard I played at a D&D oneshot. Discord's docs suggested having a cute mascot, so I kept it around.

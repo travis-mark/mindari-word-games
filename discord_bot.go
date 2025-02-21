@@ -28,17 +28,17 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	})
 
 	if err != nil {
-		log.Printf("Parser error: %v, %v\n", err, m)
+		logPrintln("Parser error: %v, %v", err, m)
 		return
 	}
 
 	err = AddScores([]Score{*score})
 	if err != nil {
-		log.Printf("AddScores error: %v, %v\n", err, m)
+		logPrintln("AddScores error: %v, %v", err, m)
 		return
 	}
 
-	log.Printf("Added score from bot: %s %s %s %s\n", score.Username, score.Game, score.GameNumber, score.Score)
+	logPrintln("Added score from bot: %s %s %s %s", score.Username, score.Game, score.GameNumber, score.Score)
 }
 
 func ConnectToDiscord() {
@@ -48,7 +48,7 @@ func ConnectToDiscord() {
 	}
 	discord, err := discordgo.New(authorization)
 	discord.Identify.Intents = discordgo.IntentGuilds | discordgo.IntentsGuildMessages
-	log.Printf("Starting bot...\n")
+	logPrintln("Starting bot...")
 	err = discord.Open()
 	if err != nil {
 		log.Fatal("Error opening Discord session: ", err)
@@ -57,6 +57,6 @@ func ConnectToDiscord() {
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
 	<-sc
-	log.Printf("Stopping bot...\n")
+	logPrintln("Stopping bot...")
 	discord.Close()
 }
