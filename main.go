@@ -10,10 +10,10 @@ import (
 func main() {
 	args := os.Args[1:]
 	if len(args) == 0 || args[0][0] == '-' {
-		args = append([]string{"serve"}, args...)
+		args = append([]string{"help"}, args...)
 	}
 	cmd := args[0]
-	db, err := LoadDatabase()
+	var err error
 	switch cmd {
 	case "monitor":
 		err = MonitorDiscord()
@@ -28,12 +28,12 @@ func main() {
 		cmd.Parse(args[1:])
 		addr := fmt.Sprintf(":%s", *port)
 		logPrintln("Starting server on %s", addr)
-		err = StartServer(db, addr)
+		err = StartServer(addr)
 	case "stats":
 		cmd := flag.NewFlagSet("stats", flag.ExitOnError)
 		game := cmd.String("game", "Wordle", "Game to print stats")
 		cmd.Parse(args[1:])
-		stats, err := GetStats(db, *game)
+		stats, err := GetStats(*game)
 		if err != nil {
 			log.Fatal(err)
 		}

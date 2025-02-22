@@ -6,8 +6,7 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-// TODO: Restructure / make this private
-func LoadDatabase() (*sql.DB, error) {
+func initDatabase() (*sql.DB, error) {
 	// Open database connection
 	db, err := sql.Open("sqlite3", "./scores.db")
 	if err != nil {
@@ -40,7 +39,7 @@ func GetDatabase() (*sql.DB, error) {
 	if _db != nil {
 		return _db, nil
 	}
-	db, err := LoadDatabase()
+	db, err := initDatabase()
 	_db = db
 	return db, err
 }

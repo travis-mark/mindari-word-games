@@ -1,19 +1,11 @@
 package main
 
 import (
-	"bytes"
-	"database/sql"
-	"fmt"
 	"html/template"
 	"net/http"
-	"strings"
 )
 
-var templates = template.Must(template.ParseFiles("scan.tpml", "stats.tpml"))
-
-type WordGameServer struct {
-	db *sql.DB
-}
+var templates = template.Must(template.ParseFiles("stats.tpml"))
 
 type StatsPageViewModel struct {
 	CurrentGame string
@@ -31,25 +23,8 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 	http.NotFound(w, r)
 }
 
-func (svr *WordGameServer) scanHandler(w http.ResponseWriter, r *http.Request) {
-	pathSegments := strings.Split(r.URL.Path, "/")
-	if len(pathSegments) < 3 {
-		http.Error(w, fmt.Errorf("Channel ID missing from path /scan/<channel_id>").Error(), http.StatusBadRequest)
-	}
-	var buffer bytes.Buffer
-	channel := pathSegments[2]
-	if channel != "" {
-		ScanChannel(Options{Channel: channel})
-	}
-	err := templates.ExecuteTemplate(w, "scan.tpml", buffer.String())
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-}
-
-func (svr *WordGameServer) statsHandler(w http.ResponseWriter, r *http.Request) {
-	games, err := GetGames(svr.db)
+func statsHandler(w http.ResponseWriter, r *http.Request) {
+	games, err := GetGames()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -58,7 +33,7 @@ func (svr *WordGameServer) statsHandler(w http.ResponseWriter, r *http.Request) 
 	if game == "" {
 		game = games[0]
 	}
-	stats, err := GetStats(svr.db, game)
+	stats, err := GetStats(game)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -75,10 +50,8 @@ func (svr *WordGameServer) statsHandler(w http.ResponseWriter, r *http.Request) 
 	}
 }
 
-func StartServer(db *sql.DB, addr string) error {
-	svr := WordGameServer{db: db}
-	http.HandleFunc("/scan/", svr.scanHandler)
-	http.HandleFunc("/stats/", svr.statsHandler)
+func StartServer(addr string) error {
+	http.HandleFunc("/stats/", statsHandler)
 	http.HandleFunc("/", rootHandler)
 	return http.ListenAndServe(addr, nil)
 }

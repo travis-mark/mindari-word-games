@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"fmt"
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -14,7 +13,11 @@ type Stats struct {
 	Highest  float32
 }
 
-func GetGames(db *sql.DB) ([]string, error) {
+func GetGames() ([]string, error) {
+	db, err := GetDatabase()
+	if err != nil {
+		return nil, err
+	}
 	sql := `
 		SELECT DISTINCT game
 		FROM scores
@@ -38,7 +41,11 @@ func GetGames(db *sql.DB) ([]string, error) {
 	return games, nil
 }
 
-func GetStats(db *sql.DB, game string) ([]Stats, error) {
+func GetStats(game string) ([]Stats, error) {
+	db, err := GetDatabase()
+	if err != nil {
+		return nil, err
+	}
 	sql := `
 		SELECT username, COUNT(id), MIN(score), AVG(score), MAX(score)
 		FROM scores
