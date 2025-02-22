@@ -30,6 +30,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 	logPrintln("Added score from bot: %s %s %s %s", score.Username, score.Game, score.GameNumber, score.Score)
+	startChannelMonitor(m.ChannelID)
 }
 
 // Periodic channel scan to cover messages not received by websocket
@@ -52,7 +53,7 @@ func channelTick(channel string) error {
 	return nil
 }
 
-var channelMonitors map[string]*time.Ticker
+var channelMonitors = map[string]*time.Ticker{}
 
 // Start periodic scan
 func startChannelMonitor(channel string) error {

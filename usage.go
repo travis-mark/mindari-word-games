@@ -5,18 +5,12 @@ import (
 	"text/template"
 )
 
-type HelpParameters struct {
-	ProgramName string
-}
-
 func help() {
-	data := HelpParameters{ProgramName: os.Args[0]}
-	const text = `
-Mindari's Word Games is a tool to extract Wordle, etc... scores from a shared Discord channel.
+	const text = `{{ .FullName }} is a tool to extract Wordle, etc... scores from a shared Discord channel.
 
 Usage:
 
-        {{ .ProgramName }} <command> [arguments]
+        {{ .ExecName }} <command> [arguments]
 
 The commands are:
 
@@ -27,5 +21,12 @@ The commands are:
 		
 `
 	tmpl := template.Must(template.New("help").Parse(text))
-	tmpl.Execute(os.Stdout, data)
+	tmpl.Execute(os.Stdout, struct {
+		ExecName string
+		FullName string
+		Address  string
+	}{
+		ExecName: AppExecName(),
+		FullName: AppFullName(),
+	})
 }
