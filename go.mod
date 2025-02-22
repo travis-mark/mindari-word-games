@@ -1,4 +1,4 @@
-module mindari-word-games
+module mindari
 
 go 1.23.4
 

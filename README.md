@@ -4,7 +4,7 @@ Mindari's Word Games is a tool to extract Wordle, etc... scores from a shared Di
 
     Usage:
 
-        mindari-word-games <command> [arguments]
+        mindari <command> [arguments]
 
     The commands are:
 
