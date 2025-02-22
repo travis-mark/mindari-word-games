@@ -31,16 +31,17 @@ type Options struct {
 // Fetch messages from Discord, parse for puzzles and save to DB
 //
 // Ref: https://discord.com/developers/docs/resources/message#get-channel-messages
-func FetchFromDiscordAndPersist(options Options) error {
+func ScanChannel(options Options) error {
 	// Create a new request
 	params := url.Values{}
 	if options.Before != "" {
 		params.Add("before", options.Before)
 		logPrintln("Scan channel <%s> before %s", options.Channel, options.Before)
-	}
-	if options.After != "" {
+	} else if options.After != "" {
 		params.Add("after", options.After)
 		logPrintln("Scan channel <%s> after %s", options.Channel, options.After)
+	} else {
+		logPrintln("Full rescan of channel <%s>", options.Channel)
 	}
 	baseURL := fmt.Sprintf("https://discord.com/api/v9/channels/%s/messages", options.Channel)
 	url := baseURL + "?" + params.Encode()
@@ -91,21 +92,19 @@ func FetchFromDiscordAndPersist(options Options) error {
 		return err
 	}
 	logPrintln("%d records updated (%s - %s)", count, messages[0].ID, messages[len(messages)-1].ID)
-
 	// Check other pages
 	// Unsure if assumption about message order is safe
 	if options.Before != "" || options.Before == "" && options.After == "" {
 		first_id := messages[count-1].ID
 		prev_page := options
 		prev_page.Before = first_id
-		FetchFromDiscordAndPersist(prev_page)
+		ScanChannel(prev_page)
 	}
 	if options.After != "" || options.Before == "" && options.After == "" {
 		last_id := messages[0].ID
 		next_page := options
 		next_page.After = last_id
-		FetchFromDiscordAndPersist(next_page)
+		ScanChannel(next_page)
 	}
-
 	return nil
 }

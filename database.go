@@ -85,10 +85,14 @@ func AddScores(scores []Score) error {
 }
 
 // Grab oldest and newest id. Used to download incrementally.
-func GetScoreIDRange(db *sql.DB) (string, string, error) {
+func GetScoreIDRange() (string, string, error) {
+	db, err := GetDatabase()
+	if err != nil {
+		return "", "", err
+	}
 	var oldest string
 	var newest string
-	err := db.QueryRow("SELECT MIN(id), MAX(id) FROM scores").Scan(&oldest, &newest)
+	err = db.QueryRow("SELECT MIN(id), MAX(id) FROM scores").Scan(&oldest, &newest)
 	if err != nil {
 		return "", "", err
 	} else {

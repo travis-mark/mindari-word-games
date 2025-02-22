@@ -39,7 +39,7 @@ func (svr *WordGameServer) scanHandler(w http.ResponseWriter, r *http.Request) {
 	var buffer bytes.Buffer
 	channel := pathSegments[2]
 	if channel != "" {
-		FetchFromDiscordAndPersist(Options{Channel: channel})
+		ScanChannel(Options{Channel: channel})
 	}
 	err := templates.ExecuteTemplate(w, "scan.tpml", buffer.String())
 	if err != nil {
@@ -75,7 +75,7 @@ func (svr *WordGameServer) statsHandler(w http.ResponseWriter, r *http.Request) 
 	}
 }
 
-func startServer(db *sql.DB, addr string) error {
+func StartServer(db *sql.DB, addr string) error {
 	svr := WordGameServer{db: db}
 	http.HandleFunc("/scan/", svr.scanHandler)
 	http.HandleFunc("/stats/", svr.statsHandler)
