@@ -15,16 +15,26 @@ type Stats struct {
 	Highest  float32
 }
 
-func GetGames() ([]string, error) {
+// Get a list of games. Add channelID or username to filter the list.
+func getGameList(channelID string, username string) ([]string, error) {
 	db, err := GetDatabase()
 	if err != nil {
 		return nil, err
 	}
-	sql := `
-		SELECT DISTINCT game
-		FROM scores
-	`
-	rows, err := db.Query(sql)
+	var rows *sql.Rows
+	if channelID != "" && username != "" {
+		sql := `SELECT DISTINCT game FROM scores WHERE channel_id = ? AND username = ?`
+		rows, err = db.Query(sql, channelID, username)
+	} else if channelID != "" {
+		sql := `SELECT DISTINCT game FROM scores WHERE channel_id = ?`
+		rows, err = db.Query(sql, channelID)
+	} else if username != "" {
+		sql := `SELECT DISTINCT game FROM scores WHERE username = ?`
+		rows, err = db.Query(sql, username)
+	} else {
+		sql := `SELECT DISTINCT game FROM scores`
+		rows, err = db.Query(sql)
+	}
 	if err != nil {
 		return nil, fmt.Errorf("failed to get game: %v", err)
 	}

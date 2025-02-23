@@ -109,6 +109,7 @@ func GetScoreIDRange() (string, string, error) {
 	}
 }
 
+
 // Get latest scores
 func GetRecentScores() ([]Score, error) {
 	db, err := GetDatabase()
@@ -116,7 +117,7 @@ func GetRecentScores() ([]Score, error) {
 		return nil, err
 	}
 	sql := `
-		SELECT id, username, game, game_number, score, win, hardmode
+		SELECT id, channel_id, username, game, game_number, score, win, hardmode
 		FROM scores
 		ORDER BY id DESC
 		LIMIT 5
@@ -130,6 +131,7 @@ func GetRecentScores() ([]Score, error) {
 		var score Score
 		err := rows.Scan(
 			&score.ID,
+			&score.ChannelID,
 			&score.Username,
 			&score.Game,
 			&score.GameNumber,

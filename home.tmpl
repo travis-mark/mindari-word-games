@@ -1,6 +1,7 @@
 <html lang="en">
     <head>
         <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Mindari's Word Games</title>
         <style>
             body { max-width: 650px; margin: 40px auto; padding: 0 10px; color: #444; }
             body { font: 18px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"; }
@@ -40,10 +41,10 @@
             {{ range $index, $score := .Scores }}
             <div style="display: flex; justify-content: space-between">
                 <div>
-                    <b>{{ $score.Score }}</b> | {{ $score.Game }} #{{ $score.GameNumber }}
+                    <b>{{ $score.Score }}</b> | <a href="/c/{{ $score.ChannelID }}?game={{ $score.Game }}">{{ $score.Game }}</a> #{{ $score.GameNumber }}
                 </div>
                 <div>
-                    <b>{{ $score.Username }}</b>
+                    <a href="/u/{{ $score.Username }}?game={{ $score.Game }}">{{ $score.Username }}</a>
                 </div>
             </div>
             {{ end }}

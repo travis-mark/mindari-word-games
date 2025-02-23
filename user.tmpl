@@ -1,7 +1,7 @@
 <html lang="en">
     <head>
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>Scores - #{{.ChannelName}}</title>
+        <title>Games - {{.Username}}</title>
         <style>
             body { max-width: 650px; margin: 40px auto; padding: 0 10px; color: #444; }
             body { font: 18px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"; }
@@ -16,36 +16,30 @@
         </style>
     </head>
     <body>
-        <h1>Scores</h1>
-        <caption>#{{.ChannelName}}</caption>
+        <h1>Games</h1>
+        <caption>@{{.Username}}</caption>
         <div>
             {{range $index, $game := .Games}}
             {{if gt $index 0}} | {{end}}
             {{if eq $game $.CurrentGame}}
             <b>{{.}}</b>
             {{else}}
-            <a href="/c/{{$.ChannelID}}?game={{.}}">{{.}}</a>
+            <a href="/u/{{$.Username}}?game={{.}}">{{.}}</a>
             {{end}}
             {{end}}
         </div>
         <table>
             <thead>
                 <tr>
-                    <th>Username</th>
-                    <th>Games</th>
-                    <th>Lowest</th>
-                    <th>Average</th>
-                    <th>Highest</th>
+                    <th>Game #</th>
+                    <th>Score</th>
                 </tr>
             </thead>
             <tbody>
-                {{range .Stats}}
+                {{range .Scores}}
                 <tr>
-                    <td>{{.Username}}</td>
-                    <td>{{.Count}}</td>
-                    <td>{{.Lowest}}</td>
-                    <td>{{ printf "%0.2f" .Average }}</td>
-                    <td>{{.Highest}}</td>
+                    <td>{{.GameNumber}}</td>
+                    <td>{{.Score}}</td>
                 </tr>
                 {{end}}
             </tbody>

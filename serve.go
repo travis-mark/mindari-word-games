@@ -16,25 +16,8 @@ type StatsPageViewModel struct {
 	Stats       []Stats
 }
 
-func rootHandler(w http.ResponseWriter, r *http.Request) {
-	scores, err := GetRecentScores()
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	err = tmpl.ExecuteTemplate(w, "home.tmpl", struct {
-		Scores []Score
-	}{
-		Scores: scores,
-	})
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-}
-
 func statsHandler(w http.ResponseWriter, r *http.Request) {
-	games, err := GetGames()
+	games, err := getGameList("", "")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -62,6 +45,7 @@ func statsHandler(w http.ResponseWriter, r *http.Request) {
 
 func StartServer(addr string) error {
 	http.HandleFunc("/c/", channelHandler)
+	http.HandleFunc("/u/", userHandler)
 	http.HandleFunc("/stats/", statsHandler)
 	http.HandleFunc("/", rootHandler)
 	return http.ListenAndServe(addr, nil)
