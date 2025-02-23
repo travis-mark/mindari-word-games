@@ -1,12 +1,14 @@
 package main
 
 import (
+	"embed"
 	"html/template"
 	"net/http"
 )
 
-var templates = template.Must(template.ParseFiles("stats.tpml"))
-
+//go:embed *.tmpl
+var templateFS embed.FS
+var tmpl = template.Must(template.ParseFS(templateFS, "*.tmpl"))
 type StatsPageViewModel struct {
 	CurrentGame string
 	Games       []string
@@ -43,7 +45,7 @@ func statsHandler(w http.ResponseWriter, r *http.Request) {
 		Games:       games,
 		Stats:       stats,
 	}
-	err = templates.ExecuteTemplate(w, "stats.tpml", vm)
+	err = tmpl.ExecuteTemplate(w, "stats.tmpl", vm)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
