@@ -20,7 +20,6 @@ func initDatabase() (*sql.DB, error) {
 			game TEXT,
 			game_number TEXT,
 			score TEXT,
-            content TEXT,
 			win TEXT,
 			hardmode TEXT,
 			UNIQUE (username, game, game_number, score)
@@ -45,14 +44,13 @@ func GetDatabase() (*sql.DB, error) {
 }
 
 // Add scores to database
-// TODO: Drop content column from DB
 func AddScores(scores []Score) error {
 	db, err := GetDatabase()
 	if err != nil {
 		return err
 	}
 	stmt, err := db.Prepare(`
-		INSERT OR REPLACE INTO scores (id, username, game, game_number, score, content, win, hardmode)
+		INSERT OR REPLACE INTO scores (id, username, game, game_number, score, win, hardmode)
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 	`)
 	if err != nil {
@@ -68,7 +66,7 @@ func AddScores(scores []Score) error {
 
 	// Execute the upsert for each score
 	for _, score := range scores {
-		_, err := tx.Stmt(stmt).Exec(score.ID, score.Username, score.Game, score.GameNumber, score.Score, score.Content, score.Win, score.Hardmode)
+		_, err := tx.Stmt(stmt).Exec(score.ID, score.Username, score.Game, score.GameNumber, score.Score, score.Win, score.Hardmode)
 		if err != nil {
 			tx.Rollback()
 			return fmt.Errorf("Failed to add score %s: %v", score.ID, err)

@@ -13,7 +13,6 @@ type Score struct {
 	Game       string
 	GameNumber string
 	Score      string
-	Content    string
 	Win        string
 	Hardmode   string
 }
@@ -127,7 +126,6 @@ func ParseScoreFromMessage(msg Message) (*Score, error) {
 		GameNumber: game_no,
 		Hardmode:   hardmode,
 		Score:      score_value,
-		Content:    msg.Content,
 		Win:        win,
 	}
 	return &score, nil
