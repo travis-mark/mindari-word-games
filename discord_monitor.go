@@ -42,15 +42,21 @@ func channelTick(channel string) error {
 	if before != "" && after != "" {
 		// Incremental load
 		err = ScanChannel(Options{Channel: channel, Before: before})
+		if err != nil {
+			return err
+		}
 		err = ScanChannel(Options{Channel: channel, After: after})
+		if err != nil {
+			return err
+		}
 	} else {
 		// Fetch all
 		err = ScanChannel(Options{Channel: channel})
+		if err != nil {
+			return err
+		}
 	}
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 var channelMonitors = map[string]*time.Ticker{}
@@ -68,15 +74,13 @@ func startChannelMonitor(channel string) error {
 	ticker = time.NewTicker(1 * time.Hour)
 	channelMonitors[channel] = ticker
 	defer ticker.Stop()
-	for {
-		select {
-		case <-ticker.C:
-			err := channelTick(channel)
-			if err != nil {
-				return err
-			}
+	for range ticker.C {
+		err := channelTick(channel)
+		if err != nil {
+			return err
 		}
 	}
+	return nil
 }
 
 func MonitorDiscord() error {
@@ -85,6 +89,9 @@ func MonitorDiscord() error {
 		return err
 	}
 	discord, err := discordgo.New(authorization)
+	if err != nil {
+		return err
+	}
 	discord.Identify.Intents = discordgo.IntentGuilds | discordgo.IntentsGuildMessages
 	logPrintln("Starting monitor...")
 	err = discord.Open()

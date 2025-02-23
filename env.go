@@ -35,5 +35,5 @@ func getAuthorization() (string, error) {
 	if bot != "" {
 		return "Bot " + bot, nil
 	}
-	return "", fmt.Errorf("No authorization found in BEARER or BOT. Check your environment or .env file.")
+	return "", fmt.Errorf("no authorization found in BEARER or BOT")
 }

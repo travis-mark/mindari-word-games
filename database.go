@@ -54,14 +54,14 @@ func AddScores(scores []Score) error {
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 	`)
 	if err != nil {
-		return fmt.Errorf("Failed to prepare statement: %v", err)
+		return fmt.Errorf("failed to prepare statement: %v", err)
 	}
 	defer stmt.Close()
 
 	// Start a transaction
 	tx, err := db.Begin()
 	if err != nil {
-		return fmt.Errorf("Failed to begin transaction: %v", err)
+		return fmt.Errorf("failed to begin transaction: %v", err)
 	}
 
 	// Execute the upsert for each score
@@ -69,13 +69,13 @@ func AddScores(scores []Score) error {
 		_, err := tx.Stmt(stmt).Exec(score.ID, score.Username, score.Game, score.GameNumber, score.Score, score.Win, score.Hardmode)
 		if err != nil {
 			tx.Rollback()
-			return fmt.Errorf("Failed to add score %s: %v", score.ID, err)
+			return fmt.Errorf("failed to add score %s: %v", score.ID, err)
 		}
 	}
 
 	// Commit the transaction
 	if err := tx.Commit(); err != nil {
-		return fmt.Errorf("Failed to commit transaction: %v", err)
+		return fmt.Errorf("failed to commit transaction: %v", err)
 	}
 
 	return nil

@@ -24,7 +24,7 @@ func GetGames() ([]string, error) {
 	`
 	rows, err := db.Query(sql)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to get game: %v", err)
+		return nil, fmt.Errorf("failed to get game: %v", err)
 	}
 	var games []string
 	for rows.Next() {
@@ -55,7 +55,7 @@ func GetStats(game string) ([]Stats, error) {
 	`
 	rows, err := db.Query(sql, game)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to get stats: %v", err)
+		return nil, fmt.Errorf("failed to get stats: %v", err)
 	}
 	var stats []Stats
 	for rows.Next() {

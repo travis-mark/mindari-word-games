@@ -70,7 +70,7 @@ func ScanChannel(options Options) error {
 		return err
 	}
 	if resp.StatusCode != http.StatusOK {
-		err = fmt.Errorf("Request failed with status: %s", resp.Status)
+		err = fmt.Errorf("request failed with status: %s", resp.Status)
 		return err
 	}
 	var messages []Message

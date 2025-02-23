@@ -9,6 +9,7 @@ import (
 //go:embed *.tmpl
 var templateFS embed.FS
 var tmpl = template.Must(template.ParseFS(templateFS, "*.tmpl"))
+
 type StatsPageViewModel struct {
 	CurrentGame string
 	Games       []string
