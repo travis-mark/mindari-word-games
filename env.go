@@ -24,15 +24,7 @@ func loadEnvironmentIfNeeded() {
 	envLoaded = true
 }
 
-// Get channel ID from .env. Used while a single channel is used per bot.
-//
-// NOTE: Because this is called optimistically, it returns "" rather than an error if CHANNEL does not exist.
-func getDefaultChannel() string {
-	loadEnvironmentIfNeeded()
-	return os.Getenv("CHANNEL")
-}
-
-// Get authorization token from .env.
+// Get authorization token (BEARER or BOT) from .env.
 func getAuthorization() (string, error) {
 	loadEnvironmentIfNeeded()
 	bearer := os.Getenv("BEARER")

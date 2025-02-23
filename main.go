@@ -19,8 +19,12 @@ func main() {
 		err = MonitorDiscord()
 	case "rescan":
 		cmd := flag.NewFlagSet("rescan", flag.ExitOnError)
-		channel := cmd.String("channel", getDefaultChannel(), "Channel ID to scan")
+		channel := cmd.String("channel", "", "Channel ID to scan")
 		cmd.Parse(args[1:])
+		if *channel == "" {
+			cmd.Usage()
+			os.Exit(1)
+		}
 		err = ScanChannel(Options{Channel: *channel})
 	case "serve":
 		cmd := flag.NewFlagSet("serve", flag.ExitOnError)
