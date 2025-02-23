@@ -51,7 +51,7 @@ func AddScores(scores []Score) error {
 	}
 	stmt, err := db.Prepare(`
 		INSERT OR REPLACE INTO scores (id, username, game, game_number, score, win, hardmode)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+		VALUES (?, ?, ?, ?, ?, ?, ?)
 	`)
 	if err != nil {
 		return fmt.Errorf("failed to prepare statement: %v", err)
