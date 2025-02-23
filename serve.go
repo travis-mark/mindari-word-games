@@ -17,13 +17,11 @@ type StatsPageViewModel struct {
 }
 
 func rootHandler(w http.ResponseWriter, r *http.Request) {
-	// Only redirect if the path is exactly "/"
-	if r.URL.Path == "/" {
-		http.Redirect(w, r, "/stats", http.StatusFound)
+	err := tmpl.ExecuteTemplate(w, "home.tmpl", nil)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	// Handle 404 for other non-existing paths
-	http.NotFound(w, r)
 }
 
 func statsHandler(w http.ResponseWriter, r *http.Request) {
