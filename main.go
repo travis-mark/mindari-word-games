@@ -36,8 +36,9 @@ func main() {
 	case "stats":
 		cmd := flag.NewFlagSet("stats", flag.ExitOnError)
 		game := cmd.String("game", "Wordle", "Game to print stats")
+		channel := cmd.String("channel", "", "Channel ID for stats")
 		cmd.Parse(args[1:])
-		stats, err := GetStats(*game)
+		stats, err := GetStats(*game, *channel)
 		if err != nil {
 			log.Fatal(err)
 		}

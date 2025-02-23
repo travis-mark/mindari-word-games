@@ -9,6 +9,7 @@ import (
 
 type Score struct {
 	ID         string
+	ChannelID  string
 	Username   string
 	Game       string
 	GameNumber string
@@ -121,6 +122,7 @@ func ParseScoreFromMessage(msg Message) (*Score, error) {
 
 	score := Score{
 		ID:         msg.ID,
+		ChannelID:  msg.ChannelID,
 		Username:   msg.Author.Username,
 		Game:       game,
 		GameNumber: game_no,
@@ -133,7 +135,6 @@ func ParseScoreFromMessage(msg Message) (*Score, error) {
 
 func ParseScores(messages []Message) ([]Score, error) {
 	scores := make([]Score, 0, len(messages))
-
 	for _, msg := range messages {
 		score, err := ParseScoreFromMessage(msg)
 		if err != nil {

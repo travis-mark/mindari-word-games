@@ -43,7 +43,7 @@ func statsHandler(w http.ResponseWriter, r *http.Request) {
 	if game == "" {
 		game = games[0]
 	}
-	stats, err := GetStats(game)
+	stats, err := GetStats(game, "")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -61,6 +61,7 @@ func statsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func StartServer(addr string) error {
+	http.HandleFunc("/c/", channelHandler)
 	http.HandleFunc("/stats/", statsHandler)
 	http.HandleFunc("/", rootHandler)
 	return http.ListenAndServe(addr, nil)

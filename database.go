@@ -16,6 +16,7 @@ func initDatabase() (*sql.DB, error) {
 	_, err = db.Exec(`
 		CREATE TABLE IF NOT EXISTS scores (
 			id TEXT UNIQUE,
+			channel_id TEXT,
 			username TEXT,
 			game TEXT,
 			game_number TEXT,
@@ -23,6 +24,17 @@ func initDatabase() (*sql.DB, error) {
 			win TEXT,
 			hardmode TEXT,
 			UNIQUE (username, game, game_number, score)
+		)
+	`)
+	if err != nil {
+		return nil, err
+	}
+	// CREATE TABLE channels
+	_, err = db.Exec(`
+		CREATE TABLE IF NOT EXISTS channels (
+			channel_id TEXT UNIQUE,
+			guild_id TEXT,
+			name TEXT
 		)
 	`)
 	if err != nil {
@@ -50,8 +62,8 @@ func AddScores(scores []Score) error {
 		return err
 	}
 	stmt, err := db.Prepare(`
-		INSERT OR REPLACE INTO scores (id, username, game, game_number, score, win, hardmode)
-		VALUES (?, ?, ?, ?, ?, ?, ?)
+		INSERT OR REPLACE INTO scores (id, channel_id, username, game, game_number, score, win, hardmode)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 	`)
 	if err != nil {
 		return fmt.Errorf("failed to prepare statement: %v", err)
@@ -66,7 +78,7 @@ func AddScores(scores []Score) error {
 
 	// Execute the upsert for each score
 	for _, score := range scores {
-		_, err := tx.Stmt(stmt).Exec(score.ID, score.Username, score.Game, score.GameNumber, score.Score, score.Win, score.Hardmode)
+		_, err := tx.Stmt(stmt).Exec(score.ID, score.ChannelID, score.Username, score.Game, score.GameNumber, score.Score, score.Win, score.Hardmode)
 		if err != nil {
 			tx.Rollback()
 			return fmt.Errorf("failed to add score %s: %v", score.ID, err)
@@ -97,7 +109,7 @@ func GetScoreIDRange() (string, string, error) {
 	}
 }
 
-// Get latest scores 
+// Get latest scores
 func GetRecentScores() ([]Score, error) {
 	db, err := GetDatabase()
 	if err != nil {

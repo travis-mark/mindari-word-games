@@ -9,11 +9,13 @@ import (
 )
 
 // Message represents a Discord message
+// TODO: Replace with discordgo version
 type Message struct {
-	Type    int    `json:"type"`
-	Content string `json:"content"`
-	ID      string `json:"id"`
-	Author  Author `json:"author"`
+	Type      int    `json:"type"`
+	Content   string `json:"content"`
+	ID        string `json:"id"`
+	ChannelID string `json:"channel_id"`
+	Author    Author `json:"author"`
 }
 
 // Author represents the message author

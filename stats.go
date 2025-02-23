@@ -1,7 +1,9 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
+
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -41,19 +43,31 @@ func GetGames() ([]string, error) {
 	return games, nil
 }
 
-func GetStats(game string) ([]Stats, error) {
+func GetStats(game string, channelID string) ([]Stats, error) {
 	db, err := GetDatabase()
 	if err != nil {
 		return nil, err
 	}
-	sql := `
-		SELECT username, COUNT(id), MIN(score), AVG(score), MAX(score)
-		FROM scores
-		WHERE game = ?
-		GROUP BY username
-		ORDER BY 4
-	`
-	rows, err := db.Query(sql, game)
+	var rows *sql.Rows
+	if channelID != "" {
+		sql := `
+			SELECT username, COUNT(id), MIN(score), AVG(score), MAX(score)
+			FROM scores
+			WHERE game = ? and channel_id = ?
+			GROUP BY username
+			ORDER BY 4
+		`
+		rows, err = db.Query(sql, game, channelID)
+	} else {
+		sql := `
+			SELECT username, COUNT(id), MIN(score), AVG(score), MAX(score)
+			FROM scores
+			WHERE game = ?
+			GROUP BY username
+			ORDER BY 4
+		`
+		rows, err = db.Query(sql, game)
+	}
 	if err != nil {
 		return nil, fmt.Errorf("failed to get stats: %v", err)
 	}
