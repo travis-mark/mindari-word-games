@@ -17,7 +17,16 @@ type StatsPageViewModel struct {
 }
 
 func rootHandler(w http.ResponseWriter, r *http.Request) {
-	err := tmpl.ExecuteTemplate(w, "home.tmpl", nil)
+	scores, err := GetRecentScores()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	err = tmpl.ExecuteTemplate(w, "home.tmpl", struct {
+		Scores []Score
+	}{
+		Scores: scores,
+	})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

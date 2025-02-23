@@ -17,18 +17,12 @@
         </style>
     </head>
     <body>
-        <!-- TODO: This is a lot of copy and the h1 is too big for smaller phones -->
-        <h1>Mindari - Score Tracker</h1>
-        <p>Never lose track of your Wordle scores again! This Discord bot automatically detects and logs Wordle score shares in your server, making it easy to:</p>
-        <ul>
-            <li>Track your daily Wordle performance</li>
-            <li>Compare scores with friends</li>
-            <li>Keep a record of your Wordle journey</li>
-            <li>Create friendly competition in your server</li>
-        </ul>
-        <p>Simply share your Wordle score in any channel the bot has access to, and it will automatically log and track it. No setup needed!</p>
+        <h1>Mindari</h1>
+        <caption>Word Games Bot</caption>
+        <p>Never lose track of your Wordle scores again! Simply share your scores in any channel Mindari has access to, and she will automatically log and track it. No setup needed!</p>
         <a class="btn btn-primary" target="_blank" href="https://discord.com/oauth2/authorize?client_id=1341868814001901689">Invite Mindari to Your Server</a>
-        <div style="display: flex; align-items: center; gap: 8px; padding-vertical: 8px">
+        <!--
+        <div style="display: flex; align-items: center; gap: 8px; padding: 0 4px">
             <div style="height: 1px; background-color: #D1D5DB; flex: 1;"></div>
             <div style="font-weight: 500;">OR</div>
             <div style="height: 1px; background-color: #D1D5DB; flex: 1;"></div>
@@ -42,5 +36,18 @@
                 <div><input type="submit" value="Search"></div>
             </div>
         </form>
+        <h2>Recent Scores</h2>
+        <div>
+            {{ range $index, $score := .Scores }}
+            <div style="display: flex; justify-content: space-between">
+                <div>
+                    <b>{{ $score.Score }}</b> | {{ $score.Game }} #{{ $score.GameNumber }}
+                </div>
+                <div>
+                    <b>{{ $score.Username }}</b>
+                </div>
+            </div>
+            {{ end }}
+        </div>
     </body>
 </html>

@@ -96,3 +96,42 @@ func GetScoreIDRange() (string, string, error) {
 		return oldest, newest, nil
 	}
 }
+
+// Get latest scores 
+func GetRecentScores() ([]Score, error) {
+	db, err := GetDatabase()
+	if err != nil {
+		return nil, err
+	}
+	sql := `
+		SELECT id, username, game, game_number, score, win, hardmode
+		FROM scores
+		ORDER BY id DESC
+		LIMIT 5
+	`
+	rows, err := db.Query(sql)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get recent scores: %v", err)
+	}
+	var scores []Score
+	for rows.Next() {
+		var score Score
+		err := rows.Scan(
+			&score.ID,
+			&score.Username,
+			&score.Game,
+			&score.GameNumber,
+			&score.Score,
+			&score.Win,
+			&score.Hardmode,
+		)
+		if err != nil {
+			return nil, err
+		}
+		scores = append(scores, score)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+	return scores, nil
+}
