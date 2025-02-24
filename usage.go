@@ -14,6 +14,7 @@ Usage:
 
 The commands are:
 
+		help		Show this list
         monitor     Periodically monitor a channel for posted scores
         rescan      Do a full rescan of a channel (in case of defects or edits)
         serve       Start a local webserver to show stats and a leaderboard
@@ -24,7 +25,6 @@ The commands are:
 	tmpl.Execute(os.Stdout, struct {
 		ExecName string
 		FullName string
-		Address  string
 	}{
 		ExecName: AppExecName(),
 		FullName: AppFullName(),

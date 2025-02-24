@@ -10,8 +10,10 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	err = tmpl.ExecuteTemplate(w, "home.tmpl", struct {
+		AppFullName string
 		Scores []Score
 	}{
+		AppFullName: AppFullName(),
 		Scores: scores,
 	})
 	if err != nil {
