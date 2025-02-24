@@ -109,7 +109,6 @@ func GetScoreIDRange() (string, string, error) {
 	}
 }
 
-
 // Get latest scores
 func GetRecentScores() ([]Score, error) {
 	db, err := GetDatabase()

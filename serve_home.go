@@ -11,10 +11,10 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	err = tmpl.ExecuteTemplate(w, "home.tmpl", struct {
 		AppFullName string
-		Scores []Score
+		Scores      []Score
 	}{
 		AppFullName: AppFullName(),
-		Scores: scores,
+		Scores:      scores,
 	})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
