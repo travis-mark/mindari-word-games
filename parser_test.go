@@ -69,8 +69,7 @@ func TestScoreParser(t *testing.T) {
 		},
 	}
 	for _, item := range data {
-		message := Message{Content: item.input}
-		score, err := ParseScoreFromMessage(message)
+		score, err := ParseScoreFromContent(item.input)
 		if err != nil {
 			t.Fatalf(`TestScoreParser("%s") returned error: %v`, item.input, err)
 		}

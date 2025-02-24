@@ -11,15 +11,7 @@ import (
 
 // Called when a message is created in a channel
 func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
-	score, err := ParseScoreFromMessage(Message{
-		ID:   m.ID,
-		Type: int(m.Type),
-		Author: Author{
-			ID:       m.Author.ID,
-			Username: m.Author.Username,
-		},
-		Content: m.Content,
-	})
+	score, err := ParseScoreFromMessage(m.Message)
 	if err != nil {
 		logPrintln("Parser error: %v, %v", err, m)
 		return

@@ -1,28 +1,6 @@
 package main
 
-import (
-	"encoding/json"
-	"fmt"
-	"io"
-	"net/http"
-	"net/url"
-)
-
-// Message represents a Discord message
-// TODO: Replace with discordgo version
-type Message struct {
-	Type      int    `json:"type"`
-	Content   string `json:"content"`
-	ID        string `json:"id"`
-	ChannelID string `json:"channel_id"`
-	Author    Author `json:"author"`
-}
-
-// Author represents the message author
-type Author struct {
-	ID       string `json:"id"`
-	Username string `json:"username"`
-}
+import "github.com/bwmarrin/discordgo"
 
 type Options struct {
 	Channel string // Discord Channel ID
@@ -31,52 +9,16 @@ type Options struct {
 }
 
 // Fetch messages from Discord, parse for puzzles and save to DB
-//
-// Ref: https://discord.com/developers/docs/resources/message#get-channel-messages
 func ScanChannel(options Options) error {
-	// Create a new request
-	params := url.Values{}
-	if options.Before != "" {
-		params.Add("before", options.Before)
-		logPrintln("Scan channel <%s> before %s", options.Channel, options.Before)
-	} else if options.After != "" {
-		params.Add("after", options.After)
-		logPrintln("Scan channel <%s> after %s", options.Channel, options.After)
-	} else {
-		logPrintln("Full rescan of channel <%s>", options.Channel)
-	}
-	baseURL := fmt.Sprintf("https://discord.com/api/v9/channels/%s/messages", options.Channel)
-	url := baseURL + "?" + params.Encode()
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		return err
-	}
 	authorization, err := getAuthorization()
 	if err != nil {
 		return err
 	}
-	req.Header.Set("Authorization", authorization)
-	req.Header.Set("User-Agent", "Mindari Word Games (0.0-alpha)")
-
-	// Create HTTP client and execute request
-	client := &http.Client{}
-	resp, err := client.Do(req)
+	discord, err := discordgo.New(authorization)
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
-
-	// Read response body
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return err
-	}
-	if resp.StatusCode != http.StatusOK {
-		err = fmt.Errorf("request failed with status: %s", resp.Status)
-		return err
-	}
-	var messages []Message
-	err = json.Unmarshal(body, &messages)
+	messages, err := discord.ChannelMessages(options.Channel, 50, options.Before, options.After, "")
 	if err != nil {
 		return err
 	}

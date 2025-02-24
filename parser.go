@@ -5,6 +5,8 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/bwmarrin/discordgo"
 )
 
 type Score struct {
@@ -18,14 +20,11 @@ type Score struct {
 	Hardmode   string
 }
 
-// Parse message to extract score
-func ParseScoreFromMessage(msg Message) (*Score, error) {
-	if msg.Type != 0 {
-		return nil, fmt.Errorf("Message is not a score")
-	}
-	lines := strings.Split(msg.Content, "\n")
+// Parse a score from a text message (string)
+func ParseScoreFromContent(content string) (*Score, error) {
+	lines := strings.Split(content, "\n")
 	if len(lines) == 0 {
-		return nil, fmt.Errorf("Message content is blank")
+		return nil, fmt.Errorf("message content is blank")
 	}
 	game := ""
 	game_no := ""
@@ -41,7 +40,7 @@ func ParseScoreFromMessage(msg Message) (*Score, error) {
 	}
 	var captures map[string]string
 	for _, re := range patterns {
-		match := re.FindStringSubmatch(msg.Content)
+		match := re.FindStringSubmatch(content)
 		if match != nil {
 			captures = make(map[string]string)
 			names := re.SubexpNames()
@@ -62,7 +61,7 @@ func ParseScoreFromMessage(msg Message) (*Score, error) {
 		}
 	}
 	if captures == nil {
-		return nil, fmt.Errorf("Message did not parse: %s", msg.Content)
+		return nil, fmt.Errorf("message did not parse: %s", content)
 	}
 	switch {
 	case game == "Wordle" || game == "Tradle":
@@ -95,14 +94,14 @@ func ParseScoreFromMessage(msg Message) (*Score, error) {
 		}
 		score_value = strconv.Itoa(value)
 	case strings.Contains(game, "Octordle"):
-		if strings.Contains(msg.Content, "🟥") {
+		if strings.Contains(content, "🟥") {
 			win = "N"
 		} else {
 			win = "Y"
 		}
 	case game == "Connections":
 		re := regexp.MustCompile("(?s)[🟨🟩🟪🟦]+")
-		lines := re.FindAllString(msg.Content, 64)
+		lines := re.FindAllString(content, 64)
 		match := 0
 		total := 0
 		for _, line := range lines {
@@ -121,9 +120,6 @@ func ParseScoreFromMessage(msg Message) (*Score, error) {
 	}
 
 	score := Score{
-		ID:         msg.ID,
-		ChannelID:  msg.ChannelID,
-		Username:   msg.Author.Username,
 		Game:       game,
 		GameNumber: game_no,
 		Hardmode:   hardmode,
@@ -133,7 +129,22 @@ func ParseScoreFromMessage(msg Message) (*Score, error) {
 	return &score, nil
 }
 
-func ParseScores(messages []Message) ([]Score, error) {
+// Parse Discord message to extract score
+func ParseScoreFromMessage(msg *discordgo.Message) (*Score, error) {
+	if msg.Type != 0 {
+		return nil, fmt.Errorf("message is not a score")
+	}
+	score, err := ParseScoreFromContent(msg.Content)
+	if err != nil {
+		return nil, err
+	}
+	score.ID = msg.ID
+	score.ChannelID = msg.ChannelID
+	score.Username = msg.Author.Username
+	return score, nil
+}
+
+func ParseScores(messages []*discordgo.Message) ([]Score, error) {
 	scores := make([]Score, 0, len(messages))
 	for _, msg := range messages {
 		score, err := ParseScoreFromMessage(msg)
