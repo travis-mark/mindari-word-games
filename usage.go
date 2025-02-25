@@ -14,7 +14,7 @@ Usage:
 
 The commands are:
 
-		help		Show this list
+        help		Show this list
         monitor     Periodically monitor a channel for posted scores
         rescan      Do a full rescan of a channel (in case of defects or edits)
         serve       Start a local webserver to show stats and a leaderboard

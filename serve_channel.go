@@ -1,6 +1,7 @@
 package main
 
 import (
+	"html/template"
 	"net/http"
 	"regexp"
 )
@@ -41,12 +42,14 @@ func channelHandler(w http.ResponseWriter, r *http.Request) {
 		CurrentGame string
 		Games       []string
 		Stats       []Stats
+		Style       template.CSS
 	}{
 		ChannelID:   channel.ID,
 		ChannelName: channel.Name,
 		CurrentGame: game,
 		Games:       games,
 		Stats:       stats,
+		Style:       template.CSS(stylesheet),
 	})
 	if err != nil {
 		logPrintln("%v", err)

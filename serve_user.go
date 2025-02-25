@@ -1,6 +1,7 @@
 package main
 
 import (
+	"html/template"
 	"net/http"
 	"regexp"
 )
@@ -75,11 +76,13 @@ func userHandler(w http.ResponseWriter, r *http.Request) {
 		CurrentGame string
 		Games       []string
 		Scores      []Score
+		Style       template.CSS
 	}{
 		Username:    username,
 		CurrentGame: game,
 		Games:       games,
 		Scores:      scores,
+		Style:       template.CSS(stylesheet),
 	})
 	if err != nil {
 		logPrintln("%v", err)

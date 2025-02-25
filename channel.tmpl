@@ -2,23 +2,10 @@
     <head>
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>{{.CurrentGame}} on #{{.ChannelName}}</title>
-        <style>
-            :root { --bkgd-color: #eee; --link-color: #00e; --hist-color: #551a8b; --text-color: #444; }
-            @media (prefers-color-scheme: dark) {
-                :root { --bkgd-color: #0d1117; --link-color: #58a6ff; --hist-color: #8e96f0; --text-color: #c9d1d9;}
-            }
-            a:link { color: var(--link-color); }
-            a:visited { color: var(--hist-color); }
-            body { max-width: 650px; margin: 40px auto; padding: 0 10px; }
-            body { color: var(--text-color); background-color: var(--bkgd-color) }
-            body { font: 18px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"; }
-            h1,h2,h3 { line-height: 1.2; margin: 0; }
-            th { padding-right: 1rem; }
-            .link-button { min-width: 44px; min-height: 44px; }        
-            select { border: none; background-color: var(--bkgd-color); color: var(--text-color); background-color: var(--bkgd-color); font-size: 1.125rem; }
-        </style>
+        <style>{{.Style}}</style>
     </head>
     <body>
+        <h1><a href="/" style="text-decoration: none">&lt;</a>Scoreboard</h1>
         <form method="get">
             <select onchange="window.location.href=this.value">
                 {{range $index, $game := .Games}}

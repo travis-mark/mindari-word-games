@@ -1,6 +1,9 @@
 package main
 
-import "net/http"
+import (
+	"html/template"
+	"net/http"
+)
 
 // Handler for /
 func rootHandler(w http.ResponseWriter, r *http.Request) {
@@ -12,9 +15,11 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 	err = tmpl.ExecuteTemplate(w, "home.tmpl", struct {
 		AppFullName string
 		Scores      []Score
+		Style       template.CSS
 	}{
 		AppFullName: AppFullName(),
 		Scores:      scores,
+		Style:       template.CSS(stylesheet),
 	})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
