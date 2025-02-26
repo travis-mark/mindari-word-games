@@ -3,17 +3,27 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>{{.CurrentGame}} on #{{.ChannelName}}</title>
         <style>{{.Style}}</style>
+        <script>
+        </script>
     </head>
     <body>
         <h1><a href="/" style="text-decoration: none">&lt;</a>Scoreboard</h1>
         <form method="get">
-            <select onchange="window.location.href=this.value">
-                {{range $index, $game := .Games}}
-                <option 
-                    {{if eq $game $.CurrentGame}}selected{{end}}
-                    value="/c/{{$.ChannelID}}?game={{.}}">{{.}}</option>
-                {{end}}
-            </select> on {{.ChannelName}}
+            <div style="display: flex; flex-direction: column; gap: 4px">
+                <div>
+                    <select name="game" onchange="this.form.submit()">
+                        {{range $index, $game := .Games}}
+                        <option 
+                            {{if eq $game $.CurrentGame}}selected{{end}}
+                            value="{{.}}">{{.}}</option>
+                        {{end}}
+                    </select> on {{.ChannelName}}
+                </div>
+                <div style="display: gap: 4px">
+                    <input type="date" name="from" value="{{.DateStart}}" onchange="this.form.submit()" />
+                    <input type="date" name="to" value="{{.DateEnd}}" onchange="this.form.submit()" />
+                </div>
+            </div>
             <noscript>
                 <input type="submit" value="Go">
             </noscript>

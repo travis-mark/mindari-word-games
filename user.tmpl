@@ -7,13 +7,21 @@
     <body>
         <h1><a href="/" style="text-decoration: none">&lt;</a>Game History</h1>
         <form method="get">
-            <select onchange="window.location.href=this.value">
-                {{range $index, $game := .Games}}
-                <option 
-                    {{if eq $game $.CurrentGame}}selected{{end}}
-                    value="/u/{{$.Username}}?game={{.}}">{{.}}</option>
-                {{end}}
-            </select> for {{.Username}}
+            <div style="display: flex; flex-direction: column; gap: 4px">
+                <div>
+                    <select name="game" onchange="this.form.submit()">
+                        {{range $index, $game := .Games}}
+                        <option 
+                            {{if eq $game $.CurrentGame}}selected{{end}}
+                            value="{{.}}">{{.}}</option>
+                        {{end}}
+                    </select> for {{.Username}}
+                </div>
+                <div style="display: gap: 4px">
+                    <input type="date" name="from" value="{{.DateStart}}" onchange="this.form.submit()" />
+                    <input type="date" name="to" value="{{.DateEnd}}" onchange="this.form.submit()" />
+                </div>
+            </div>
             <noscript>
                 <input type="submit" value="Go">
             </noscript>

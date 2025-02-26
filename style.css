@@ -11,8 +11,10 @@ body { font: 18px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "He
 h1, h2, h3 { line-height: 1.2; margin: 0; }
 th { padding-right: 1rem; }
 .link-button { min-width: 44px; min-height: 44px; }
-select { border: 1px solid var(--text-color); border-radius: 4px; }
-select { background-color: var(--btn-color); color: var(--text-color); font-size: 1.125rem; }
+select, input { border: 1px solid var(--text-color); border-radius: 4px; color: var(--text-color); font-size: 1.125rem; }
+@media (prefers-color-scheme: dark) {
+    select, input { background-color: var(--btn-color); }
+}
 .btn { display: block; text-align: center; text-decoration: none; padding: 8px; border-radius: 8px; }
 .btn-primary:link { color: white; background-color: #4245cd; }
 .btn-primary:visited { color: white; background-color: #6c76e9; }

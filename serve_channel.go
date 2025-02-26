@@ -31,7 +31,15 @@ func channelHandler(w http.ResponseWriter, r *http.Request) {
 	if game == "" {
 		game = games[0]
 	}
-	stats, err := GetStats(game, channelID)
+	dateStart := r.URL.Query().Get("from")
+	if dateStart == "" {
+		dateStart = defaultDateStart()
+	}
+	dateEnd := r.URL.Query().Get("to")
+	if dateEnd == "" {
+		dateEnd = defaultDateEnd()
+	}
+	stats, err := GetStats(game, channelID, dateStart, dateEnd)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -40,6 +48,8 @@ func channelHandler(w http.ResponseWriter, r *http.Request) {
 		ChannelID   string
 		ChannelName string
 		CurrentGame string
+		DateStart string
+		DateEnd string
 		Games       []string
 		Stats       []Stats
 		Style       template.CSS
@@ -47,6 +57,8 @@ func channelHandler(w http.ResponseWriter, r *http.Request) {
 		ChannelID:   channel.ID,
 		ChannelName: channel.Name,
 		CurrentGame: game,
+		DateStart: dateStart,
+		DateEnd: dateEnd,
 		Games:       games,
 		Stats:       stats,
 		Style:       template.CSS(stylesheet),

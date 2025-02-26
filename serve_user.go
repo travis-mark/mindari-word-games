@@ -8,18 +8,26 @@ import (
 
 var userRegex = regexp.MustCompile(`^/u/([^/]+)(?:/.*)?$`)
 
-func getScoresByUser(game string, username string) ([]Score, error) {
+func getScoresByUser(game string, username string, from string, to string) ([]Score, error) {
 	db, err := GetDatabase()
+	if err != nil {
+		return nil, err
+	}
+	d_from, err := dateToDiscordSnowflake(from + "T00:00:00")
+	if err != nil {
+		return nil, err
+	}
+	d_to, err := dateToDiscordSnowflake(to + "T23:59:59")
 	if err != nil {
 		return nil, err
 	}
 	sql := `
 		SELECT id, channel_id, username, game, game_number, score, win, hardmode
 		FROM scores
-		WHERE game = ? and username = ?
+		WHERE game = ? AND username = ? AND id >= ? AND id <= ?
 		ORDER BY game_number DESC
 	`
-	rows, err := db.Query(sql, game, username)
+	rows, err := db.Query(sql, game, username, d_from, d_to)
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +74,15 @@ func userHandler(w http.ResponseWriter, r *http.Request) {
 	if game == "" {
 		game = games[0]
 	}
-	scores, err := getScoresByUser(game, username)
+	dateStart := r.URL.Query().Get("from")
+	if dateStart == "" {
+		dateStart = defaultDateStart()
+	}
+	dateEnd := r.URL.Query().Get("to")
+	if dateEnd == "" {
+		dateEnd = defaultDateEnd()
+	}
+	scores, err := getScoresByUser(game, username, dateStart, dateEnd)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -74,12 +90,16 @@ func userHandler(w http.ResponseWriter, r *http.Request) {
 	err = tmpl.ExecuteTemplate(w, "user.tmpl", struct {
 		Username    string
 		CurrentGame string
+				DateStart string
+		DateEnd string
 		Games       []string
 		Scores      []Score
 		Style       template.CSS
 	}{
 		Username:    username,
 		CurrentGame: game,
+				DateStart: dateStart,
+		DateEnd: dateEnd,
 		Games:       games,
 		Scores:      scores,
 		Style:       template.CSS(stylesheet),

@@ -53,31 +53,28 @@ func getGameList(channelID string, username string) ([]string, error) {
 	return games, nil
 }
 
-func GetStats(game string, channelID string) ([]Stats, error) {
+func GetStats(game string, channelID string, from string, to string) ([]Stats, error) {
 	db, err := GetDatabase()
 	if err != nil {
 		return nil, err
 	}
-	var rows *sql.Rows
-	if channelID != "" {
-		sql := `
-			SELECT username, COUNT(id), MIN(score), AVG(score), MAX(score)
-			FROM scores
-			WHERE game = ? and channel_id = ?
-			GROUP BY username
-			ORDER BY 4
-		`
-		rows, err = db.Query(sql, game, channelID)
-	} else {
-		sql := `
-			SELECT username, COUNT(id), MIN(score), AVG(score), MAX(score)
-			FROM scores
-			WHERE game = ?
-			GROUP BY username
-			ORDER BY 4
-		`
-		rows, err = db.Query(sql, game)
+	d_from, err := dateToDiscordSnowflake(from + "T00:00:00")
+	if err != nil {
+		return nil, err
 	}
+	d_to, err := dateToDiscordSnowflake(to + "T23:59:59")
+	if err != nil {
+		return nil, err
+	}
+	var rows *sql.Rows
+	sql := `
+		SELECT username, COUNT(id), MIN(score), AVG(score), MAX(score)
+		FROM scores
+		WHERE game = ? AND channel_id = ? AND id >= ? AND id <= ?
+		GROUP BY username
+		ORDER BY 4
+	`
+	rows, err = db.Query(sql, game, channelID, d_from, d_to)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get stats: %v", err)
 	}
