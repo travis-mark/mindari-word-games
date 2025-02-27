@@ -90,7 +90,7 @@ func userHandler(w http.ResponseWriter, r *http.Request) {
 	err = tmpl.ExecuteTemplate(w, "user.tmpl", struct {
 		Username    string
 		CurrentGame string
-				DateStart string
+		DateStart string
 		DateEnd string
 		Games       []string
 		Scores      []Score
@@ -98,7 +98,7 @@ func userHandler(w http.ResponseWriter, r *http.Request) {
 	}{
 		Username:    username,
 		CurrentGame: game,
-				DateStart: dateStart,
+		DateStart: dateStart,
 		DateEnd: dateEnd,
 		Games:       games,
 		Scores:      scores,
