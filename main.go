@@ -26,6 +26,27 @@ func main() {
 			os.Exit(1)
 		}
 		err = ScanChannel(Options{Channel: *channel})
+	case "season":
+		// TODO: Month boundaries
+		cmd := flag.NewFlagSet("season", flag.ExitOnError)
+		channel := cmd.String("channel", "", "Channel ID for stats")
+		cmd.Parse(args[1:])
+		if *channel == "" {
+			cmd.Usage()
+			os.Exit(1)
+		}
+		games, err := getGameList(*channel, "")
+		if err != nil {
+			log.Fatal(err)
+		}
+		for _, game :=  range games {
+			stats, err := GetStats(game, *channel, "", "")
+			fmt.Printf("### %s\n", game)
+			if err != nil {
+				log.Fatal(err)
+			}
+			PrintStats(stats, "md-discord")
+		}
 	case "serve":
 		cmd := flag.NewFlagSet("serve", flag.ExitOnError)
 		port := cmd.String("port", "7654", "Port to run server")
