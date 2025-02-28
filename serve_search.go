@@ -8,7 +8,7 @@ import (
 
 type SearchResult struct {
 	Type string
-	ID string
+	ID   string
 	Name string
 }
 
@@ -26,7 +26,7 @@ func FindByChannelOrUsername(query string) ([]SearchResult, error) {
 		WHERE name LIKE ?
 		LIMIT 50
 	`
-	rows, err := db.Query(sql, "%" + query + "%")
+	rows, err := db.Query(sql, "%"+query+"%")
 	if err != nil {
 		return nil, fmt.Errorf("failed to get channels: %v", err)
 	}
@@ -55,7 +55,7 @@ func FindByChannelOrUsername(query string) ([]SearchResult, error) {
 		WHERE username LIKE ?
 		LIMIT 50
 	`
-	rows, err = db.Query(sql, "%" + query + "%")
+	rows, err = db.Query(sql, "%"+query+"%")
 	if err != nil {
 		return nil, fmt.Errorf("failed to get users: %v", err)
 	}
@@ -89,13 +89,13 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	err = tmpl.ExecuteTemplate(w, "search.tmpl", struct {
-		Query		string
-		Results		[]SearchResult
-		Style       template.CSS
+		Query   string
+		Results []SearchResult
+		Style   template.CSS
 	}{
-		Query: query,
+		Query:   query,
 		Results: results,
-		Style:       template.CSS(stylesheet),
+		Style:   template.CSS(stylesheet),
 	})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

@@ -9,7 +9,7 @@ import (
 func rootHandler(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Query().Get("q") != "" {
 		searchHandler(w, r)
-		return 
+		return
 	}
 	scores, err := GetRecentScores()
 	if err != nil {

@@ -90,16 +90,16 @@ func userHandler(w http.ResponseWriter, r *http.Request) {
 	err = tmpl.ExecuteTemplate(w, "user.tmpl", struct {
 		Username    string
 		CurrentGame string
-		DateStart string
-		DateEnd string
+		DateStart   string
+		DateEnd     string
 		Games       []string
 		Scores      []Score
 		Style       template.CSS
 	}{
 		Username:    username,
 		CurrentGame: game,
-		DateStart: dateStart,
-		DateEnd: dateEnd,
+		DateStart:   dateStart,
+		DateEnd:     dateEnd,
 		Games:       games,
 		Scores:      scores,
 		Style:       template.CSS(stylesheet),

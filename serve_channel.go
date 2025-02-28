@@ -48,8 +48,8 @@ func channelHandler(w http.ResponseWriter, r *http.Request) {
 		ChannelID   string
 		ChannelName string
 		CurrentGame string
-		DateStart string
-		DateEnd string
+		DateStart   string
+		DateEnd     string
 		Games       []string
 		Stats       []Stats
 		Style       template.CSS
@@ -57,8 +57,8 @@ func channelHandler(w http.ResponseWriter, r *http.Request) {
 		ChannelID:   channel.ID,
 		ChannelName: channel.Name,
 		CurrentGame: game,
-		DateStart: dateStart,
-		DateEnd: dateEnd,
+		DateStart:   dateStart,
+		DateEnd:     dateEnd,
 		Games:       games,
 		Stats:       stats,
 		Style:       template.CSS(stylesheet),
