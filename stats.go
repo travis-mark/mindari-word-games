@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"strings"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -58,13 +59,23 @@ func GetStats(game string, channelID string, from string, to string) ([]Stats, e
 	if err != nil {
 		return nil, err
 	}
-	d_from, err := dateToDiscordSnowflake(from + "T00:00:00")
-	if err != nil {
-		return nil, err
+	var d_from int64
+	var d_to int64
+	if from == "" {
+		d_from = 0
+	} else {
+		d_from, err = dateToDiscordSnowflake(from + "T00:00:00")
+		if err != nil {
+			return nil, err
+		}
 	}
-	d_to, err := dateToDiscordSnowflake(to + "T23:59:59")
-	if err != nil {
-		return nil, err
+	if to == "" {
+		d_to = 9223372036854775807 // math.MaxInt64
+	} else {
+		d_to, err = dateToDiscordSnowflake(to + "T23:59:59")
+		if err != nil {
+			return nil, err
+		}
 	}
 	var rows *sql.Rows
 	sql := `
@@ -100,8 +111,15 @@ func GetStats(game string, channelID string, from string, to string) ([]Stats, e
 }
 
 func PrintStats(stats []Stats) {
-	fmt.Printf("Username\tGames\tLowest\tAverage\tHighest\n")
+	fmt.Print(SPrintStats(stats))
+}
+
+func SPrintStats(stats []Stats) string {
+	var builder strings.Builder
+	builder.WriteString("Username\tGames\tLowest\tAverage\tHighest\n")
 	for _, stat := range stats {
-		fmt.Printf("%s\t%d\t%0.0f\t%0.2f\t%0.0f\n", stat.Username, stat.Count, stat.Lowest, stat.Average, stat.Highest)
+		s := fmt.Sprintf("%s\t%d\t%0.0f\t%0.2f\t%0.0f\n", stat.Username, stat.Count, stat.Lowest, stat.Average, stat.Highest)
+		builder.WriteString(s)
 	}
+	return builder.String()
 }
