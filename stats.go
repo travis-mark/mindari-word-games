@@ -110,11 +110,34 @@ func GetStats(game string, channelID string, from string, to string) ([]Stats, e
 	return stats, nil
 }
 
-func PrintStats(stats []Stats) {
-	fmt.Print(SPrintStats(stats))
+func PrintStats(stats []Stats, format string) {
+	fmt.Print(SPrintStats(stats, format))
 }
 
-func SPrintStats(stats []Stats) string {
+func SPrintStatsMarkdownDiscord(stats []Stats) string {
+	usernameColumnTitle := "Username"
+	usernameColumnSize := len(usernameColumnTitle)
+	for _, stat := range stats {
+		if len(stat.Username) > usernameColumnSize {
+			usernameColumnSize = len(stat.Username)
+		}
+	}
+	usernameColumnTitle = fmt.Sprintf("%-*s", usernameColumnSize, usernameColumnTitle)
+	var builder strings.Builder
+	builder.WriteString("```md\n")
+	header := fmt.Sprintf("| %s | Games | Lowest | Average | Highest |\n", usernameColumnTitle)
+	builder.WriteString(header)
+	linebreak := fmt.Sprintf("| %s | ----- | ------ | ------- | ------- |\n", strings.Repeat("-", usernameColumnSize))
+	builder.WriteString(linebreak)
+	for _, stat := range stats {
+		s := fmt.Sprintf("| %-*s | %5d | %6.0f | %7.2f | %7.0f |\n", usernameColumnSize, stat.Username, stat.Count, stat.Lowest, stat.Average, stat.Highest)
+		builder.WriteString(s)
+	}
+	builder.WriteString("```\n")
+	return builder.String()
+}
+
+func SPrintStatsTabs(stats []Stats) string {
 	var builder strings.Builder
 	builder.WriteString("Username\tGames\tLowest\tAverage\tHighest\n")
 	for _, stat := range stats {
@@ -122,4 +145,14 @@ func SPrintStats(stats []Stats) string {
 		builder.WriteString(s)
 	}
 	return builder.String()
+}
+
+
+func SPrintStats(stats []Stats, format string) string {
+	switch format {
+	case "md-discord":
+		return SPrintStatsMarkdownDiscord(stats)
+	default:
+		return SPrintStatsTabs(stats)
+	}
 }

@@ -37,6 +37,7 @@ func main() {
 		cmd := flag.NewFlagSet("stats", flag.ExitOnError)
 		game := cmd.String("game", "Wordle", "Game to print stats")
 		channel := cmd.String("channel", "", "Channel ID for stats")
+		format := cmd.String("format", "", "Format for output")
 		cmd.Parse(args[1:])
 		if *channel == "" || *game == "" {
 			cmd.Usage()
@@ -46,7 +47,7 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		PrintStats(stats)
+		PrintStats(stats, *format)
 	default:
 		help()
 	}
