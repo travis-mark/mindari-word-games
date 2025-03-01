@@ -39,6 +39,10 @@ func TestScoreParser(t *testing.T) {
 			input:  "Daily Octordle #501\r\n6️⃣🟥\r\n5️⃣8️⃣\r\n3️⃣🟥\r\n🕐🔟\r\nScore: 73",
 			output: Score{Game: "Daily Octordle", Score: "73", GameNumber: "501", Win: "N"},
 		},
+		{ // User text in middle of string (courtesy: Josh)
+			input:  "Daily Octordle #1131 7️⃣🔟 5️⃣8️⃣ 🟥🟥 oof 🟥🕐 Score: 85",
+			output: Score{Game: "Daily Octordle", Score: "85", GameNumber: "1131", Win: "N"},
+		},
 		{
 			input:  "Daily Sequence Octordle #563 4️⃣5️⃣ 7️⃣8️⃣ 9️⃣🔟 🕚🕛 Score: 66",
 			output: Score{Game: "Daily Sequence Octordle", Score: "66", GameNumber: "563", Win: "Y"},
@@ -58,6 +62,10 @@ func TestScoreParser(t *testing.T) {
 		{
 			input:  "Connections Puzzle #613 🟨🟩🟨🟨 🟨🟨🟨🟨 🟦🟪🟦🟦 🟦🟪🟪🟦 🟩🟩🟩🟩 🟦🟪🟪🟦",
 			output: Score{Game: "Connections", Score: "7", GameNumber: "613", Win: "N"},
+		},
+		{ // User text in middle of string (courtesy: Elly)
+			input:  "Connections Puzzle #623 😢😂 🟪🟪🟦🟦 🟩🟩🟩🟩 🟨🟦🟨🟨 🟨🟨🟨🟨 🟪🟪🟦🟦 🟪🟪🟦🟪",
+			output: Score{Game: "Connections", Score: "7", GameNumber: "623", Win: "N"},
 		},
 		{
 			input:  "#Tradle #527 2/6 🟩🟩🟩🟩🟨 🟩🟩🟩🟩🟩 https://oec.world/en/tradle",
