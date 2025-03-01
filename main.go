@@ -39,7 +39,7 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		for _, game :=  range games {
+		for _, game := range games {
 			stats, err := GetStats(game, *channel, "", "")
 			fmt.Printf("### %s\n", game)
 			if err != nil {

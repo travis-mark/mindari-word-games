@@ -125,12 +125,12 @@ func SPrintStatsMarkdownDiscord(stats []Stats) string {
 	usernameColumnTitle = fmt.Sprintf("%-*s", usernameColumnSize, usernameColumnTitle)
 	var builder strings.Builder
 	builder.WriteString("```md\n")
-	header := fmt.Sprintf("| %s | Games | Lowest | Average | Highest |\n", usernameColumnTitle)
+	header := fmt.Sprintf("| %s |  # | Min | Mean | Max |\n", usernameColumnTitle)
 	builder.WriteString(header)
-	linebreak := fmt.Sprintf("| %s | ----- | ------ | ------- | ------- |\n", strings.Repeat("-", usernameColumnSize))
+	linebreak := fmt.Sprintf("| %s | -- | --- | ---- | --- |\n", strings.Repeat("-", usernameColumnSize))
 	builder.WriteString(linebreak)
 	for _, stat := range stats {
-		s := fmt.Sprintf("| %-*s | %5d | %6.0f | %7.2f | %7.0f |\n", usernameColumnSize, stat.Username, stat.Count, stat.Lowest, stat.Average, stat.Highest)
+		s := fmt.Sprintf("| %-*s | %2d | %3.0f | %4.1f | %3.0f |\n", usernameColumnSize, stat.Username, stat.Count, stat.Lowest, stat.Average, stat.Highest)
 		builder.WriteString(s)
 	}
 	builder.WriteString("```\n")
@@ -146,7 +146,6 @@ func SPrintStatsTabs(stats []Stats) string {
 	}
 	return builder.String()
 }
-
 
 func SPrintStats(stats []Stats, format string) string {
 	switch format {
