@@ -31,7 +31,6 @@
                 <tr>
                     <th>Game #</th>
                     <th>Score</th>
-                    <th>Posted On</th>
                 </tr>
             </thead>
             <tbody>
@@ -39,7 +38,15 @@
                 <tr>
                     <td>{{.GameNumber}}</td>
                     <td>{{.Score}}</td>
-                    <td><a href="/c/{{.ChannelID}}?game={{.Game}}">{{.Game}}</a></td>
+                    <td>
+                    <div class="bar-container">
+                        {{ if (eq .Win "Y") }}
+                        <div class="bar-element" style="width: calc({{.Score}} / {{$.BarMax}} * 100%); background-color: #4CAF50;" />
+                        {{ else }}
+                        <div class="bar-element" style="width: calc({{.Score}} / {{$.BarMax}} * 100%); background-color: #CD5C5C;" />
+                        {{ end }}
+                    </div>
+                    </td>
                 </tr>
                 {{end}}
             </tbody>

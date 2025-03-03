@@ -4,9 +4,19 @@ import (
 	"html/template"
 	"net/http"
 	"regexp"
+	"strings"
 )
 
 var userRegex = regexp.MustCompile(`^/u/([^/]+)(?:/.*)?$`)
+
+func getBarMaxValue(game string) int {
+	switch {
+	case strings.Contains(game, "Octordle"):
+		return 100
+	default:
+		return 7
+	}
+}
 
 func getScoresByUser(game string, username string, from string, to string) ([]Score, error) {
 	db, err := GetDatabase()
@@ -95,6 +105,7 @@ func userHandler(w http.ResponseWriter, r *http.Request) {
 		Games       []string
 		Scores      []Score
 		Style       template.CSS
+		BarMax      int
 	}{
 		Username:    username,
 		CurrentGame: game,
@@ -103,6 +114,7 @@ func userHandler(w http.ResponseWriter, r *http.Request) {
 		Games:       games,
 		Scores:      scores,
 		Style:       template.CSS(stylesheet),
+		BarMax:      getBarMaxValue(game),
 	})
 	if err != nil {
 		logPrintln("%v", err)

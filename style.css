@@ -16,3 +16,5 @@ input[type="search"] { -webkit-appearance: none; appearance: none; }
 .btn { display: block; text-align: center; text-decoration: none; padding: 8px; border-radius: 8px; }
 .btn-primary:link { color: white; background-color: #4245cd; }
 .btn-primary:visited { color: white; background-color: #6c76e9; }
+.bar-container { width: 150px; height: 20px; background-color: #e0e0e0; position: relative; overflow: hidden; }
+.bar-element { height: 100%; position: absolute; top: 0; left: 0; }
