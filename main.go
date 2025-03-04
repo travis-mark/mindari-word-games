@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 )
 
 func main() {
@@ -27,7 +28,6 @@ func main() {
 		}
 		err = ScanChannel(Options{Channel: *channel})
 	case "season":
-		// TODO: Month boundaries
 		cmd := flag.NewFlagSet("season", flag.ExitOnError)
 		channel := cmd.String("channel", "", "Channel ID for stats")
 		cmd.Parse(args[1:])
@@ -39,13 +39,17 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
+		start, end := seasonRangeForDate(time.Now())
 		for _, game := range games {
-			stats, err := GetStats(game, *channel, "", "")
-			fmt.Printf("### %s\n", game)
-			if err != nil {
-				log.Fatal(err)
+			stats, err := GetStats(game, *channel, start.Format("2006-01-02"), end.Format("2006-01-02"))
+			if len(stats) > 0 {
+				fmt.Printf("### %s\n", game)
+				if err != nil {
+					log.Fatal(err)
+				}
+				PrintStats(stats, "md-discord")
 			}
-			PrintStats(stats, "md-discord")
+
 		}
 	case "serve":
 		cmd := flag.NewFlagSet("serve", flag.ExitOnError)
