@@ -63,7 +63,38 @@ func getScoresByUser(game string, username string, from string, to string) ([]Sc
 		return nil, err
 	}
 	return scores, nil
+}
 
+func getFriendNames(username string) ([]string, error) {
+	db, err := GetDatabase()
+	if err != nil {
+		return nil, err
+	}
+	sql := `
+		SELECT DISTINCT username
+		FROM scores
+		WHERE channel_id IN (
+			SELECT DISTINCT channel_id
+			FROM scores
+			WHERE username = ?)
+	`
+	rows, err := db.Query(sql, username)
+	if err != nil {
+		return nil, err
+	}
+	var friends []string
+	for rows.Next() {
+		var friend string
+		err := rows.Scan(&friend)
+		if err != nil {
+			return nil, err
+		}
+		friends = append(friends, friend)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+	return friends, nil
 }
 
 // Handler for /u/<USERNAME>
@@ -75,6 +106,12 @@ func userHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	username := matches[1]
+	friend := r.URL.Query().Get("friend")
+    if friend != "" && friend != username {
+        newURL := "/u/" + friend
+        http.Redirect(w, r, newURL, http.StatusMovedPermanently)
+        return
+    }
 	games, err := getGameList("", username)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -92,6 +129,11 @@ func userHandler(w http.ResponseWriter, r *http.Request) {
 	if dateEnd == "" {
 		dateEnd = defaultDateEnd()
 	}
+	friends, err := getFriendNames(username)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	scores, err := getScoresByUser(game, username, dateStart, dateEnd)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -99,22 +141,24 @@ func userHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	err = tmpl.ExecuteTemplate(w, "user.tmpl", struct {
 		Username    string
+		BarMax      int
 		CurrentGame string
 		DateStart   string
 		DateEnd     string
+		Friends     []string
 		Games       []string
 		Scores      []Score
 		Style       template.CSS
-		BarMax      int
 	}{
 		Username:    username,
+		BarMax:      getBarMaxValue(game),
 		CurrentGame: game,
 		DateStart:   dateStart,
 		DateEnd:     dateEnd,
+		Friends:     friends,
 		Games:       games,
 		Scores:      scores,
 		Style:       template.CSS(stylesheet),
-		BarMax:      getBarMaxValue(game),
 	})
 	if err != nil {
 		logPrintln("%v", err)

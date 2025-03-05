@@ -15,7 +15,15 @@
                             {{if eq $game $.CurrentGame}}selected{{end}}
                             value="{{.}}">{{.}}</option>
                         {{end}}
-                    </select> for {{.Username}}
+                    </select> 
+                    for 
+                    <select name="friend" onchange="this.form.submit()">
+                        {{range $index, $friend := .Friends}}
+                        <option 
+                            {{if eq $friend $.Username}}selected{{end}}
+                            value="{{.}}">{{.}}</option>
+                        {{end}}
+                    </select>
                 </div>
                 <div style="display: gap: 4px">
                     <input type="date" name="from" value="{{.DateStart}}" onchange="this.form.submit()" /> to
