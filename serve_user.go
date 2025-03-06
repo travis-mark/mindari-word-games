@@ -100,9 +100,17 @@ func userHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	username := matches[1]
-	friend := r.URL.Query().Get("friend")
-    if friend != "" && friend != username {
-        newURL := "/u/" + friend
+	params := r.URL.Query()
+	// Pseudo-parameter friend lets us jump from
+	// /u/user1?friend=user2 -> /u/user2
+	// While still working with standard <form> submit
+	friend := params.Get("friend")
+    if friend != "" {
+		params.Del("friend")
+		newURL := "/u/" + friend
+		if len(params) > 0 {
+			newURL = newURL + "?" + params.Encode()
+		}
         http.Redirect(w, r, newURL, http.StatusMovedPermanently)
         return
     }
@@ -111,15 +119,15 @@ func userHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	game := r.URL.Query().Get("game")
+	game := params.Get("game")
 	if game == "" {
 		game = games[0]
 	}
-	from := r.URL.Query().Get("from")
+	from := params.Get("from")
 	if from == "" {
 		from = defaultDateStart()
 	}
-	to := r.URL.Query().Get("to")
+	to := params.Get("to")
 	if to == "" {
 		to = defaultDateEnd()
 	}
