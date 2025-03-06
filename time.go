@@ -1,6 +1,9 @@
 package main
 
-import "time"
+import (
+	"strconv"
+	"time"
+)
 
 func dateToDiscordSnowflake(dateStr string) (int64, error) {
 	date, err := time.Parse("2006-01-02T15:04:05", dateStr)
@@ -11,6 +14,18 @@ func dateToDiscordSnowflake(dateStr string) (int64, error) {
 	milliseconds := date.UnixMilli() - discordEpoch.UnixMilli()
 	snowflake := milliseconds << 22
 	return snowflake, nil
+}
+
+func dateFromDiscordSnowflake(snowflake string) (string, error) {
+	snowflakeInt, err := strconv.ParseInt(snowflake, 10, 64)
+    if err != nil {
+        return "", err
+    }
+	milliseconds := snowflakeInt >> 22
+	discordEpoch := time.Date(2015, 1, 1, 0, 0, 0, 0, time.UTC)
+	date := time.UnixMilli(discordEpoch.UnixMilli() + milliseconds)
+	dateStr := date.Format("2006-01-02")
+	return dateStr, nil
 }
 
 func defaultDateStart() string {

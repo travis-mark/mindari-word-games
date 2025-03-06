@@ -12,7 +12,7 @@ func initDatabase() (*sql.DB, error) {
 	if err != nil {
 		return nil, err
 	}
-	// CREATE TABLE scores
+	// Scores
 	_, err = db.Exec(`
 		CREATE TABLE IF NOT EXISTS scores (
 			id TEXT UNIQUE,
@@ -29,12 +29,25 @@ func initDatabase() (*sql.DB, error) {
 	if err != nil {
 		return nil, err
 	}
-	// CREATE TABLE channels
+	// Channels
 	_, err = db.Exec(`
 		CREATE TABLE IF NOT EXISTS channels (
 			channel_id TEXT UNIQUE,
 			guild_id TEXT,
 			name TEXT
+		)
+	`)
+	if err != nil {
+		return nil, err
+	}
+	// Puzzles
+	_, err = db.Exec(`
+		CREATE TABLE IF NOT EXISTS puzzles (
+			game TEXT,
+			game_number TEXT,
+			date TEXT,
+			solution TEXT,
+			UNIQUE (game, game_number)
 		)
 	`)
 	if err != nil {
@@ -61,27 +74,44 @@ func AddScores(scores []Score) error {
 	if err != nil {
 		return err
 	}
-	stmt, err := db.Prepare(`
+	score_stmt, err := db.Prepare(`
 		INSERT OR REPLACE INTO scores (id, channel_id, username, game, game_number, score, win, hardmode)
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 	`)
 	if err != nil {
-		return fmt.Errorf("failed to prepare statement: %v", err)
+		return fmt.Errorf("failed to prepare score statement: %v", err)
 	}
-	defer stmt.Close()
+	defer score_stmt.Close()
+	puzzle_stmt, err := db.Prepare(`
+		INSERT OR IGNORE INTO puzzles (game, game_number, date)
+		VALUES (?, ?, ?)
+	`)
+	if err != nil {
+		return fmt.Errorf("failed to prepare puzzle statement: %v", err)
+	}
+	defer score_stmt.Close()
 
 	// Start a transaction
 	tx, err := db.Begin()
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %v", err)
 	}
-
 	// Execute the upsert for each score
 	for _, score := range scores {
-		_, err := tx.Stmt(stmt).Exec(score.ID, score.ChannelID, score.Username, score.Game, score.GameNumber, score.Score, score.Win, score.Hardmode)
+		_, err := tx.Stmt(score_stmt).Exec(score.ID, score.ChannelID, score.Username, score.Game, score.GameNumber, score.Score, score.Win, score.Hardmode)
 		if err != nil {
 			tx.Rollback()
 			return fmt.Errorf("failed to add score %s: %v", score.ID, err)
+		}
+		date, err := dateFromDiscordSnowflake(score.ID)
+		if err != nil {
+			tx.Rollback()
+			return fmt.Errorf("failed to get snowflake %s: %v", score.ID, err)
+		}
+		_, err = tx.Stmt(puzzle_stmt).Exec(score.Game, score.GameNumber, date)
+		if err != nil {
+			tx.Rollback()
+			return fmt.Errorf("failed to add puzzle %s: %v", score.ID, err)
 		}
 	}
 
