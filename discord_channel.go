@@ -51,7 +51,7 @@ func FetchChannelInfo(channelID string) (*discordgo.Channel, error) {
 // Read channel info from storage.
 //
 // Defaults to a local database. Falls back to querying Discord.
-func ReadChannelInfo(channelID string) (*discordgo.Channel, error) {
+func readChannelInfo(channelID string) (*discordgo.Channel, error) {
 	db, err := GetDatabase()
 	if err != nil {
 		return nil, err

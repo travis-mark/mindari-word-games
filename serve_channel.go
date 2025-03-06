@@ -17,7 +17,7 @@ func channelHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	channelID := matches[1]
-	channel, err := ReadChannelInfo(channelID)
+	channel, err := readChannelInfo(channelID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

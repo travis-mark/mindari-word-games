@@ -23,21 +23,15 @@ func getScoresByUser(game string, username string, from string, to string) ([]Sc
 	if err != nil {
 		return nil, err
 	}
-	d_from, err := dateToDiscordSnowflake(from + "T00:00:00")
-	if err != nil {
-		return nil, err
-	}
-	d_to, err := dateToDiscordSnowflake(to + "T23:59:59")
-	if err != nil {
-		return nil, err
-	}
 	sql := `
-		SELECT id, channel_id, username, game, game_number, score, win, hardmode
-		FROM scores
-		WHERE game = ? AND username = ? AND id >= ? AND id <= ?
-		ORDER BY game_number DESC
+		SELECT id, channel_id, username, s.game, s.game_number, score, win, hardmode
+		FROM scores s
+		JOIN puzzles p
+			ON s.game = p.game AND s.game_number = p.game_number
+		WHERE s.game = ? AND s.username = ? AND p.date >= ? AND p.date <= ?
+		ORDER BY s.game_number DESC
 	`
-	rows, err := db.Query(sql, game, username, d_from, d_to)
+	rows, err := db.Query(sql, game, username, from, to)
 	if err != nil {
 		return nil, err
 	}
@@ -121,20 +115,20 @@ func userHandler(w http.ResponseWriter, r *http.Request) {
 	if game == "" {
 		game = games[0]
 	}
-	dateStart := r.URL.Query().Get("from")
-	if dateStart == "" {
-		dateStart = defaultDateStart()
+	from := r.URL.Query().Get("from")
+	if from == "" {
+		from = defaultDateStart()
 	}
-	dateEnd := r.URL.Query().Get("to")
-	if dateEnd == "" {
-		dateEnd = defaultDateEnd()
+	to := r.URL.Query().Get("to")
+	if to == "" {
+		to = defaultDateEnd()
 	}
 	friends, err := getFriendNames(username)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	scores, err := getScoresByUser(game, username, dateStart, dateEnd)
+	scores, err := getScoresByUser(game, username, from, to)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -153,8 +147,8 @@ func userHandler(w http.ResponseWriter, r *http.Request) {
 		Username:    username,
 		BarMax:      getBarMaxValue(game),
 		CurrentGame: game,
-		DateStart:   dateStart,
-		DateEnd:     dateEnd,
+		DateStart:   from,
+		DateEnd:     to,
 		Friends:     friends,
 		Games:       games,
 		Scores:      scores,

@@ -59,33 +59,23 @@ func GetStats(game string, channelID string, from string, to string) ([]Stats, e
 	if err != nil {
 		return nil, err
 	}
-	var d_from int64
-	var d_to int64
 	if from == "" {
-		d_from = 0
-	} else {
-		d_from, err = dateToDiscordSnowflake(from + "T00:00:00")
-		if err != nil {
-			return nil, err
-		}
+		from = defaultDateStart()
 	}
 	if to == "" {
-		d_to = 9223372036854775807 // math.MaxInt64
-	} else {
-		d_to, err = dateToDiscordSnowflake(to + "T23:59:59")
-		if err != nil {
-			return nil, err
-		}
+		to = defaultDateEnd()
 	}
 	var rows *sql.Rows
 	sql := `
 		SELECT username, COUNT(id), MIN(score), AVG(score), MAX(score)
-		FROM scores
-		WHERE game = ? AND channel_id = ? AND id >= ? AND id <= ?
+		FROM scores s
+		JOIN puzzles p
+			ON s.game = p.game AND s.game_number = p.game_number
+		WHERE s.game = ? AND channel_id = ? AND p.date >= ? AND p.date <= ?
 		GROUP BY username
 		ORDER BY 4
 	`
-	rows, err = db.Query(sql, game, channelID, d_from, d_to)
+	rows, err = db.Query(sql, game, channelID, from, to)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get stats: %v", err)
 	}
