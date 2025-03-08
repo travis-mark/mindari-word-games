@@ -41,7 +41,7 @@
             <tbody>
                 {{range .Stats}}
                 <tr>
-                    <td><a href="/u/{{.Username}}?game={{$.CurrentGame}}&from={{$.DateStart}}&to={{$.DateEnd}}">{{.Username}}</a></td>
+                    <td><a href="/user?name={{.Username}}&game={{$.CurrentGame}}&from={{$.DateStart}}&to={{$.DateEnd}}">{{.Username}}</a></td>
                     <td>{{.Count}}</td>
                     <td>{{.Lowest}}</td>
                     <td>{{ printf "%0.2f" .Average }}</td>

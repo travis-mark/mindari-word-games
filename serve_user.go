@@ -3,11 +3,8 @@ package main
 import (
 	"html/template"
 	"net/http"
-	"regexp"
 	"strings"
 )
-
-var userRegex = regexp.MustCompile(`^/u/([^/]+)(?:/.*)?$`)
 
 func getBarMaxValue(game string) int {
 	switch {
@@ -91,29 +88,14 @@ func getFriendNames(username string) ([]string, error) {
 	return friends, nil
 }
 
-// Handler for /u/<USERNAME>
+// Handler for /user
 func userHandler(w http.ResponseWriter, r *http.Request) {
-	matches := userRegex.FindStringSubmatch(r.URL.Path)
-	if len(matches) < 2 {
-		// No match found
-		http.Error(w, "Invalid user URL", http.StatusBadRequest)
+	params := r.URL.Query()
+	username := params.Get("name")
+	if username == "" {
+		http.Error(w, "Username Required", http.StatusInternalServerError)
 		return
 	}
-	username := matches[1]
-	params := r.URL.Query()
-	// Pseudo-parameter friend lets us jump from
-	// /u/user1?friend=user2 -> /u/user2
-	// While still working with standard <form> submit
-	friend := params.Get("friend")
-    if friend != "" {
-		params.Del("friend")
-		newURL := "/u/" + friend
-		if len(params) > 0 {
-			newURL = newURL + "?" + params.Encode()
-		}
-        http.Redirect(w, r, newURL, http.StatusMovedPermanently)
-        return
-    }
 	games, err := getGameList("", username)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

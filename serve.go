@@ -15,7 +15,7 @@ var stylesheet string
 
 func StartServer(addr string) error {
 	http.HandleFunc("/c/", channelHandler)
-	http.HandleFunc("/u/", userHandler)
+	http.HandleFunc("/user", userHandler)
 	http.HandleFunc("/", rootHandler)
 	return http.ListenAndServe(addr, nil)
 }

@@ -23,7 +23,7 @@
                     {{ if eq $result.Type "channel" }}
                     <a href="/c/{{ $result.ID }}">{{ $result.Name }}</a>
                     {{ else }}
-                    <a href="/u/{{ $result.ID }}">{{ $result.Name }}</a>
+                    <a href="/user?name={{ $result.ID }}">{{ $result.Name }}</a>
                     {{ end }}
                 </div>
                 <div>

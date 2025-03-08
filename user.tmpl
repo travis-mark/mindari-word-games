@@ -17,7 +17,7 @@
                         {{end}}
                     </select> 
                     for 
-                    <select name="friend" onchange="this.form.submit()">
+                    <select name="name" onchange="this.form.submit()">
                         {{range $index, $friend := .Friends}}
                         <option 
                             {{if eq $friend $.Username}}selected{{end}}
