@@ -1,9 +1,6 @@
 package main
 
 import (
-	"os"
-	"os/signal"
-	"syscall"
 	"time"
 
 	"github.com/bwmarrin/discordgo"
@@ -22,28 +19,29 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 	logPrintln("Added score from bot: %s %s %s %s", score.Username, score.Game, score.GameNumber, score.Score)
-	startChannelMonitor(m.ChannelID)
+	// TODO: Remove global ref workaround
+	discordConnection.startChannelMonitor(m.ChannelID)
 }
 
 // Periodic channel scan to cover messages not received by websocket
-func channelTick(channel string) error {
+func (dc *DiscordConnection) channelTick(channel string) error {
 	before, after, err := GetScoreIDRange()
 	if err != nil {
 		return err
 	}
 	if before != "" && after != "" {
 		// Incremental load
-		err = ScanChannel(Options{Channel: channel, Before: before})
+		err = dc.scanChannel(Options{Channel: channel, Before: before})
 		if err != nil {
 			return err
 		}
-		err = ScanChannel(Options{Channel: channel, After: after})
+		err = dc.scanChannel(Options{Channel: channel, After: after})
 		if err != nil {
 			return err
 		}
 	} else {
 		// Fetch all
-		err = ScanChannel(Options{Channel: channel})
+		err = dc.scanChannel(Options{Channel: channel})
 		if err != nil {
 			return err
 		}
@@ -54,8 +52,8 @@ func channelTick(channel string) error {
 var channelMonitors = map[string]*time.Ticker{}
 
 // Start periodic scan
-func startChannelMonitor(channel string) error {
-	err := channelTick(channel)
+func (dc *DiscordConnection) startChannelMonitor(channel string) error {
+	err := dc.channelTick(channel)
 	if err != nil {
 		return err
 	}
@@ -67,7 +65,7 @@ func startChannelMonitor(channel string) error {
 	channelMonitors[channel] = ticker
 	defer ticker.Stop()
 	for range ticker.C {
-		err := channelTick(channel)
+		err := dc.channelTick(channel)
 		if err != nil {
 			return err
 		}
@@ -75,26 +73,13 @@ func startChannelMonitor(channel string) error {
 	return nil
 }
 
-func MonitorDiscord() error {
-	authorization, err := getAuthorization()
-	if err != nil {
-		return err
-	}
-	discord, err := discordgo.New(authorization)
-	if err != nil {
-		return err
-	}
-	discord.Identify.Intents = discordgo.IntentGuilds | discordgo.IntentsGuildMessages
+func (dc *DiscordConnection) startDiscordMonitor() error {
+	dc.Session.Identify.Intents = discordgo.IntentGuilds | discordgo.IntentsGuildMessages
 	logPrintln("Starting monitor...")
-	err = discord.Open()
-	if err != nil {
-		return err
-	}
-	discord.AddHandler(messageCreate)
-	sc := make(chan os.Signal, 1)
-	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
-	<-sc
-	logPrintln("Stopping monitor...")
-	discord.Close()
+	dc.Session.AddHandler(messageCreate)
+	dc.onDiscordConnectionClose(func() error {
+		logPrintln("Stopping monitor...")
+		return nil
+	})
 	return nil
 }

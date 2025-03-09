@@ -5,8 +5,17 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/signal"
 	"time"
 )
+
+// Continue run until ^C. Used for server like discord commands that return but need to keep going.
+func keepAlive() {
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, os.Interrupt)
+	logPrintln("Press Ctrl+C to exit")
+	<-stop
+}
 
 func main() {
 	args := os.Args[1:]
@@ -16,8 +25,27 @@ func main() {
 	cmd := args[0]
 	var err error
 	switch cmd {
+	case "echo":
+		dc, err := initDiscordConnection()
+		if err != nil {
+			log.Fatal(err)
+		}
+		_, err = dc.enableEchoCommand()
+		if err != nil {
+			log.Fatal(err)
+		}
+		keepAlive()
+		dc.close()
 	case "monitor":
-		err = MonitorDiscord()
+		dc, err := initDiscordConnection()
+		if err != nil {
+			log.Fatal(err)
+		}
+		err = dc.startDiscordMonitor()
+		if err != nil {
+			log.Fatal(err)
+		}
+		keepAlive()
 	case "rescan":
 		cmd := flag.NewFlagSet("rescan", flag.ExitOnError)
 		channel := cmd.String("channel", "", "Channel ID to scan")
@@ -26,7 +54,14 @@ func main() {
 			cmd.Usage()
 			os.Exit(1)
 		}
-		err = ScanChannel(Options{Channel: *channel})
+		dc, err := initDiscordConnection()
+		if err != nil {
+			log.Fatal(err)
+		}
+		err = dc.scanChannel(Options{Channel: *channel})
+		if err != nil {
+			log.Fatal(err)
+		}
 	case "season":
 		cmd := flag.NewFlagSet("season", flag.ExitOnError)
 		channel := cmd.String("channel", "", "Channel ID for stats")

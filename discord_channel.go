@@ -28,16 +28,8 @@ func storeChannelInfo(channel *discordgo.Channel) error {
 }
 
 // Grab channel info from Discord and save to database for later use
-func FetchChannelInfo(channelID string) (*discordgo.Channel, error) {
-	authorization, err := getAuthorization()
-	if err != nil {
-		return nil, err
-	}
-	discord, err := discordgo.New(authorization)
-	if err != nil {
-		return nil, err
-	}
-	channel, err := discord.Channel(channelID)
+func (dc *DiscordConnection) fetchChannelInfo(channelID string) (*discordgo.Channel, error) {
+	channel, err := dc.Session.Channel(channelID)
 	if err != nil {
 		return nil, err
 	}
@@ -60,7 +52,8 @@ func readChannelInfo(channelID string) (*discordgo.Channel, error) {
 	row := db.QueryRow("SELECT channel_id, guild_id, name FROM channels WHERE channel_id = ?", channelID)
 	err = row.Scan(&channel.ID, &channel.GuildID, &channel.Name)
 	if err == sql.ErrNoRows {
-		fetched_channel, err := FetchChannelInfo(channelID)
+		// TODO: Remove global ref workaround
+		fetched_channel, err := discordConnection.fetchChannelInfo(channelID)
 		return fetched_channel, err
 	} else if err != nil {
 		return nil, err

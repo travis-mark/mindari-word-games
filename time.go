@@ -18,9 +18,9 @@ func dateToDiscordSnowflake(dateStr string) (int64, error) {
 
 func dateFromDiscordSnowflake(snowflake string) (string, error) {
 	snowflakeInt, err := strconv.ParseInt(snowflake, 10, 64)
-    if err != nil {
-        return "", err
-    }
+	if err != nil {
+		return "", err
+	}
 	milliseconds := snowflakeInt >> 22
 	discordEpoch := time.Date(2015, 1, 1, 0, 0, 0, 0, time.UTC)
 	date := time.UnixMilli(discordEpoch.UnixMilli() + milliseconds)
