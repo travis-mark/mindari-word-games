@@ -3,20 +3,16 @@ package main
 import (
 	"html/template"
 	"net/http"
-	"regexp"
 )
 
-var channelRegex = regexp.MustCompile(`^/c/([^/]+)(?:/.*)?$`)
-
-// Handler for /c/<CHANNEL_ID>
+// Handler for /channel
 func channelHandler(w http.ResponseWriter, r *http.Request) {
-	matches := channelRegex.FindStringSubmatch(r.URL.Path)
-	if len(matches) < 2 {
-		// No match found
-		http.Error(w, "Invalid channel URL", http.StatusBadRequest)
+	params := r.URL.Query()
+	channelID := params.Get("id")
+	if channelID == "" {
+		http.Error(w, "Channel ID Required", http.StatusInternalServerError)
 		return
 	}
-	channelID := matches[1]
 	channel, err := readChannelInfo(channelID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -27,15 +23,15 @@ func channelHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	game := r.URL.Query().Get("game")
+	game := params.Get("game")
 	if game == "" {
 		game = games[0]
 	}
-	dateStart := r.URL.Query().Get("from")
+	dateStart := params.Get("from")
 	if dateStart == "" {
 		dateStart = defaultDateStart()
 	}
-	dateEnd := r.URL.Query().Get("to")
+	dateEnd := params.Get("to")
 	if dateEnd == "" {
 		dateEnd = defaultDateEnd()
 	}

@@ -21,7 +21,7 @@
             <div style="display: flex; justify-content: space-between">
                 <div>
                     {{ if eq $result.Type "channel" }}
-                    <a href="/c/{{ $result.ID }}">{{ $result.Name }}</a>
+                    <a href="/channel?id={{ $result.ID }}">{{ $result.Name }}</a>
                     {{ else }}
                     <a href="/user?name={{ $result.ID }}">{{ $result.Name }}</a>
                     {{ end }}

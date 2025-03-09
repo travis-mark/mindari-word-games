@@ -9,6 +9,7 @@
     <body>
         <h1><a href="/" style="text-decoration: none">&lt;</a>Scoreboard</h1>
         <form method="get">
+            <input type="hidden" name="id" value="{{.ChannelID}}" />
             <div style="display: flex; flex-direction: column; gap: 4px">
                 <div>
                     <select name="game" onchange="this.form.submit()">

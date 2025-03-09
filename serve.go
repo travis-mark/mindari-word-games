@@ -14,7 +14,7 @@ var tmpl = template.Must(template.ParseFS(templateFS, "*.tmpl"))
 var stylesheet string
 
 func StartServer(addr string) error {
-	http.HandleFunc("/c/", channelHandler)
+	http.HandleFunc("/channel", channelHandler)
 	http.HandleFunc("/user", userHandler)
 	http.HandleFunc("/", rootHandler)
 	return http.ListenAndServe(addr, nil)

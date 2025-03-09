@@ -30,7 +30,7 @@
             {{ range $index, $score := .Scores }}
             <div style="display: flex; justify-content: space-between">
                 <div>
-                    <b>{{ $score.Score }}</b> | <a href="/c/{{ $score.ChannelID }}?game={{ $score.Game }}">{{ $score.Game }}</a> #{{ $score.GameNumber }}
+                    <b>{{ $score.Score }}</b> | <a href="/channel?id={{ $score.ChannelID }}&game={{ $score.Game }}">{{ $score.Game }}</a> #{{ $score.GameNumber }}
                 </div>
                 <div>
                     <a href="/user?name={{ $score.Username }}&game={{ $score.Game }}">{{ $score.Username }}</a>
