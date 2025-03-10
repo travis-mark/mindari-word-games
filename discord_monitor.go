@@ -13,9 +13,9 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		logPrintln("Parser error: %v, %v", err, m)
 		return
 	}
-	err = AddScores([]Score{*score})
+	err = addScores([]Score{*score})
 	if err != nil {
-		logPrintln("AddScores error: %v, %v", err, m)
+		logPrintln("addScores error: %v, %v", err, m)
 		return
 	}
 	logPrintln("Added score from bot: %s %s %s %s", score.Username, score.Game, score.GameNumber, score.Score)
@@ -25,7 +25,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 // Periodic channel scan to cover messages not received by websocket
 func (dc *DiscordConnection) channelTick(channel string) error {
-	before, after, err := GetScoreIDRange()
+	before, after, err := getScoreIDRange()
 	if err != nil {
 		return err
 	}

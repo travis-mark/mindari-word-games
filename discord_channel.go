@@ -8,7 +8,7 @@ import (
 
 // Cache fetched channel info
 func storeChannelInfo(channel *discordgo.Channel) error {
-	db, err := GetDatabase()
+	db, err := getDatabase()
 	if err != nil {
 		return err
 	}
@@ -44,7 +44,7 @@ func (dc *DiscordConnection) fetchChannelInfo(channelID string) (*discordgo.Chan
 //
 // Defaults to a local database. Falls back to querying Discord.
 func readChannelInfo(channelID string) (*discordgo.Channel, error) {
-	db, err := GetDatabase()
+	db, err := getDatabase()
 	if err != nil {
 		return nil, err
 	}

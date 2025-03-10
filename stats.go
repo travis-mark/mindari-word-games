@@ -18,7 +18,7 @@ type Stats struct {
 
 // Get a list of games. Add channelID or username to filter the list.
 func getGameList(channelID string, username string) ([]string, error) {
-	db, err := GetDatabase()
+	db, err := getDatabase()
 	if err != nil {
 		return nil, err
 	}
@@ -54,8 +54,8 @@ func getGameList(channelID string, username string) ([]string, error) {
 	return games, nil
 }
 
-func GetStats(game string, channelID string, from string, to string) ([]Stats, error) {
-	db, err := GetDatabase()
+func getStats(game string, channelID string, from string, to string) ([]Stats, error) {
+	db, err := getDatabase()
 	if err != nil {
 		return nil, err
 	}

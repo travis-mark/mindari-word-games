@@ -120,7 +120,7 @@ func (dc *DiscordConnection) scanChannel(options Options) error {
 	if err != nil {
 		return err
 	}
-	err = AddScores(scores)
+	err = addScores(scores)
 	if err != nil {
 		return err
 	}

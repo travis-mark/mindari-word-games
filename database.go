@@ -3,11 +3,12 @@ package main
 import (
 	"database/sql"
 	"fmt"
+
 	_ "github.com/mattn/go-sqlite3"
 )
 
+// Open database connection
 func initDatabase() (*sql.DB, error) {
-	// Open database connection
 	db, err := sql.Open("sqlite3", "./scores.db")
 	if err != nil {
 		return nil, err
@@ -59,7 +60,7 @@ func initDatabase() (*sql.DB, error) {
 var _db *sql.DB
 
 // Get a connection to database. Reuses a shared connection if one is available.
-func GetDatabase() (*sql.DB, error) {
+func getDatabase() (*sql.DB, error) {
 	if _db != nil {
 		return _db, nil
 	}
@@ -69,8 +70,8 @@ func GetDatabase() (*sql.DB, error) {
 }
 
 // Add scores to database
-func AddScores(scores []Score) error {
-	db, err := GetDatabase()
+func addScores(scores []Score) error {
+	db, err := getDatabase()
 	if err != nil {
 		return err
 	}
@@ -91,12 +92,10 @@ func AddScores(scores []Score) error {
 	}
 	defer score_stmt.Close()
 
-	// Start a transaction
 	tx, err := db.Begin()
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %v", err)
 	}
-	// Execute the upsert for each score
 	for _, score := range scores {
 		_, err := tx.Stmt(score_stmt).Exec(score.ID, score.ChannelID, score.Username, score.Game, score.GameNumber, score.Score, score.Win, score.Hardmode)
 		if err != nil {
@@ -114,8 +113,6 @@ func AddScores(scores []Score) error {
 			return fmt.Errorf("failed to add puzzle %s: %v", score.ID, err)
 		}
 	}
-
-	// Commit the transaction
 	if err := tx.Commit(); err != nil {
 		return fmt.Errorf("failed to commit transaction: %v", err)
 	}
@@ -124,8 +121,8 @@ func AddScores(scores []Score) error {
 }
 
 // Grab oldest and newest id. Used to download incrementally.
-func GetScoreIDRange() (string, string, error) {
-	db, err := GetDatabase()
+func getScoreIDRange() (string, string, error) {
+	db, err := getDatabase()
 	if err != nil {
 		return "", "", err
 	}
@@ -141,7 +138,7 @@ func GetScoreIDRange() (string, string, error) {
 
 // Get latest scores
 func GetRecentScores() ([]Score, error) {
-	db, err := GetDatabase()
+	db, err := getDatabase()
 	if err != nil {
 		return nil, err
 	}
@@ -177,4 +174,153 @@ func GetRecentScores() ([]Score, error) {
 		return nil, err
 	}
 	return scores, nil
+}
+
+type SearchResult struct {
+	Type string
+	ID   string
+	Name string
+}
+
+// Used by search box
+func findByChannelOrUsername(query string) ([]SearchResult, error) {
+	if query == "" {
+		return nil, fmt.Errorf("search query is empty")
+	}
+	db, err := getDatabase()
+	if err != nil {
+		return nil, err
+	}
+	sql := `
+		SELECT "channel", channel_id, name 
+		FROM channels
+		WHERE name LIKE ?
+		LIMIT 50
+	`
+	rows, err := db.Query(sql, "%"+query+"%")
+	if err != nil {
+		return nil, fmt.Errorf("failed to get channels: %v", err)
+	}
+	var results []SearchResult
+	for rows.Next() {
+		var result SearchResult
+		err := rows.Scan(
+			&result.Type,
+			&result.ID,
+			&result.Name,
+		)
+		if err != nil {
+			return nil, err
+		}
+		results = append(results, result)
+		if len(results) >= 50 {
+			return results, nil
+		}
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+	sql = `
+		SELECT "user", username, username 
+		FROM (SELECT DISTINCT username FROM scores)
+		WHERE username LIKE ?
+		LIMIT 50
+	`
+	rows, err = db.Query(sql, "%"+query+"%")
+	if err != nil {
+		return nil, fmt.Errorf("failed to get users: %v", err)
+	}
+	for rows.Next() {
+		var result SearchResult
+		err := rows.Scan(
+			&result.Type,
+			&result.ID,
+			&result.Name,
+		)
+		if err != nil {
+			return nil, err
+		}
+		results = append(results, result)
+		if len(results) >= 50 {
+			return results, nil
+		}
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+	return results, nil
+}
+
+func getScoresByUser(game string, username string, from string, to string) ([]Score, error) {
+	db, err := getDatabase()
+	if err != nil {
+		return nil, err
+	}
+	sql := `
+		SELECT id, channel_id, username, s.game, s.game_number, score, win, hardmode
+		FROM scores s
+		JOIN puzzles p
+			ON s.game = p.game AND s.game_number = p.game_number
+		WHERE s.game = ? AND s.username = ? AND p.date >= ? AND p.date <= ?
+		ORDER BY s.game_number DESC
+	`
+	rows, err := db.Query(sql, game, username, from, to)
+	if err != nil {
+		return nil, err
+	}
+	var scores []Score
+	for rows.Next() {
+		var score Score
+		err := rows.Scan(
+			&score.ID,
+			&score.ChannelID,
+			&score.Username,
+			&score.Game,
+			&score.GameNumber,
+			&score.Score,
+			&score.Win,
+			&score.Hardmode,
+		)
+		if err != nil {
+			return nil, err
+		}
+		scores = append(scores, score)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+	return scores, nil
+}
+
+// List usernames in same guild as user. Used for user dropdown.
+func getFriendNames(username string) ([]string, error) {
+	db, err := getDatabase()
+	if err != nil {
+		return nil, err
+	}
+	sql := `
+		SELECT DISTINCT username
+		FROM scores
+		WHERE channel_id IN (
+			SELECT DISTINCT channel_id
+			FROM scores
+			WHERE username = ?)
+	`
+	rows, err := db.Query(sql, username)
+	if err != nil {
+		return nil, err
+	}
+	var friends []string
+	for rows.Next() {
+		var friend string
+		err := rows.Scan(&friend)
+		if err != nil {
+			return nil, err
+		}
+		friends = append(friends, friend)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+	return friends, nil
 }

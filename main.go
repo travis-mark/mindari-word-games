@@ -6,8 +6,69 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"path/filepath"
+	"runtime"
+	"strings"
+	"text/template"
 	"time"
 )
+
+// Shown in usage
+func appExecName() string { return filepath.Base(os.Args[0]) }
+
+// Shown in usage and web page titles
+func appFullName() string { return "Mindari's Word Games" }
+
+// Used by logger
+func appInitials() string { return "MWG" }
+
+// Usage statement
+func help() {
+	const text = `{{ .FullName }} is a tool to extract Wordle, etc... scores from a shared Discord channel.
+
+Usage:
+
+        {{ .ExecName }} <command> [arguments]
+
+The commands are:
+
+        help		Show this list
+        monitor     Periodically monitor a channel for posted scores
+        rescan      Do a full rescan of a channel (in case of defects or edits)
+        serve       Start a local webserver to show stats and a leaderboard
+        stats       Print stats to standard output to use for custom graphs
+		
+`
+	tmpl := template.Must(template.New("help").Parse(text))
+	tmpl.Execute(os.Stdout, struct {
+		ExecName string
+		FullName string
+	}{
+		ExecName: appExecName(),
+		FullName: appFullName(),
+	})
+}
+
+// Logging wrapper - Includes file and line number
+func logPrintln(format string, v ...any) {
+	// Capitalization for variables in final print statement
+	App := appInitials()
+	Message := fmt.Sprintf(format, v...)
+	Template := "[%s] %s:%d:%s %s\n"
+	pc, file, Line, ok := runtime.Caller(1)
+	// This shouldn't fail, but do not swallow message if it does
+	if !ok {
+		log.Printf(Template, App, "UNKNOWN", 0, "UNKNOWN", Message)
+	} else {
+		fnWithModule := runtime.FuncForPC(pc).Name()
+		fnParts := strings.Split(fnWithModule, ".")
+		// Filename without path
+		Name := filepath.Base(file)
+		// Function name without module
+		Fn := fnParts[len(fnParts)-1]
+		log.Printf(Template, App, Name, Line, Fn, Message)
+	}
+}
 
 // Continue run until ^C. Used for server like discord commands that return but need to keep going.
 func keepAlive() {
@@ -17,6 +78,7 @@ func keepAlive() {
 	<-stop
 }
 
+// Main entry point
 func main() {
 	args := os.Args[1:]
 	if len(args) == 0 || args[0][0] == '-' {
@@ -76,7 +138,7 @@ func main() {
 		}
 		start, end := seasonRangeForDate(time.Now())
 		for _, game := range games {
-			stats, err := GetStats(game, *channel, start.Format("2006-01-02"), end.Format("2006-01-02"))
+			stats, err := getStats(game, *channel, start.Format("2006-01-02"), end.Format("2006-01-02"))
 			if len(stats) > 0 {
 				fmt.Printf("### %s\n", game)
 				if err != nil {
@@ -92,7 +154,7 @@ func main() {
 		cmd.Parse(args[1:])
 		addr := fmt.Sprintf(":%s", *port)
 		logPrintln("Starting server on %s", addr)
-		err = StartServer(addr)
+		err = startWebServer(addr)
 	case "stats":
 		cmd := flag.NewFlagSet("stats", flag.ExitOnError)
 		game := cmd.String("game", "Wordle", "Game to print stats")
@@ -103,7 +165,7 @@ func main() {
 			cmd.Usage()
 			os.Exit(1)
 		}
-		stats, err := GetStats(*game, *channel, "", "")
+		stats, err := getStats(*game, *channel, "", "")
 		if err != nil {
 			log.Fatal(err)
 		}
