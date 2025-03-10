@@ -37,7 +37,7 @@ func getGameList(channelID string, username string) ([]string, error) {
 		rows, err = db.Query(sql)
 	}
 	if err != nil {
-		return nil, fmt.Errorf("failed to get game: %v", err)
+		return nil, fmt.Errorf("failed to get games: %v", err)
 	}
 	var games []string
 	for rows.Next() {

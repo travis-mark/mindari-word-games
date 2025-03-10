@@ -26,15 +26,16 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	err = tmpl.ExecuteTemplate(w, "home.tmpl", struct {
-		appFullName string
+		AppFullName string
 		Scores      []Score
 		Style       template.CSS
 	}{
-		appFullName: appFullName(),
+		AppFullName: appFullName(),
 		Scores:      scores,
 		Style:       template.CSS(stylesheet),
 	})
 	if err != nil {
+		logPrintln("%v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -58,6 +59,7 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 		Style:   template.CSS(stylesheet),
 	})
 	if err != nil {
+		logPrintln("%v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -115,6 +117,69 @@ func channelHandler(w http.ResponseWriter, r *http.Request) {
 		DateEnd:     dateEnd,
 		Games:       games,
 		Stats:       stats,
+		Style:       template.CSS(stylesheet),
+	})
+	if err != nil {
+		logPrintln("%v", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
+// Handler for /stats
+func statsHandler(w http.ResponseWriter, r *http.Request) {
+	params := r.URL.Query()
+	channelID := params.Get("cid")
+	if channelID == "" {
+		http.Error(w, "Channel Required", http.StatusInternalServerError)
+		return
+	}
+	channel, err := readChannelInfo(channelID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	from := params.Get("from")
+	if from == "" {
+		from = defaultDateStart()
+	}
+	to := params.Get("to")
+	if to == "" {
+		to = defaultDateEnd()
+	}
+	games, err := getGameList(channelID, "")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	type GameStats struct {
+		Game  string
+		Stats []Stats
+	}
+	var gameStats []GameStats
+	for _, game := range games {
+		stats, err := getStats(game, channelID, from, to)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		if len(stats) > 0 {
+			gameStats = append(gameStats, GameStats{Game: game, Stats: stats})
+		}
+	}
+	err = tmpl.ExecuteTemplate(w, "stats.tmpl", struct {
+		ChannelID   string
+		ChannelName string
+		From        string
+		To          string
+		GameStats   []GameStats
+		Style       template.CSS
+	}{
+		ChannelID:   channelID,
+		ChannelName: channel.Name,
+		From:        from,
+		To:          to,
+		GameStats:   gameStats,
 		Style:       template.CSS(stylesheet),
 	})
 	if err != nil {
@@ -196,6 +261,7 @@ func userHandler(w http.ResponseWriter, r *http.Request) {
 
 func startWebServer(addr string) error {
 	http.HandleFunc("/channel", channelHandler)
+	http.HandleFunc("/stats", statsHandler)
 	http.HandleFunc("/user", userHandler)
 	http.HandleFunc("/", rootHandler)
 	return http.ListenAndServe(addr, nil)

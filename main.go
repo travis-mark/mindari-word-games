@@ -10,7 +10,6 @@ import (
 	"runtime"
 	"strings"
 	"text/template"
-	"time"
 )
 
 // Shown in usage
@@ -136,9 +135,10 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		start, end := seasonRangeForDate(time.Now())
+		start := defaultDateStart()
+		end := defaultDateEnd()
 		for _, game := range games {
-			stats, err := getStats(game, *channel, start.Format("2006-01-02"), end.Format("2006-01-02"))
+			stats, err := getStats(game, *channel, start, end)
 			if len(stats) > 0 {
 				fmt.Printf("### %s\n", game)
 				if err != nil {

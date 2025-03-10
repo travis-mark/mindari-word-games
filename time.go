@@ -29,17 +29,14 @@ func dateFromDiscordSnowflake(snowflake string) (string, error) {
 }
 
 func defaultDateStart() string {
-	thirtyDaysAgo := time.Now().AddDate(0, 0, -30)
-	return thirtyDaysAgo.Format("2006-01-02")
+	t := time.Now()
+	t0 := time.Date(t.Year(), t.Month(), 1, 0, 0, 0, 0, t.Location())
+	return t0.Format("2006-01-02")
 }
 
 func defaultDateEnd() string {
-	today := time.Now()
-	return today.Format("2006-01-02")
-}
-
-func seasonRangeForDate(t time.Time) (time.Time, time.Time) {
+	t := time.Now()
 	t0 := time.Date(t.Year(), t.Month(), 1, 0, 0, 0, 0, t.Location())
 	t1 := t0.AddDate(0, 1, 0).AddDate(0, 0, -1)
-	return t0, t1
+	return t1.Format("2006-01-02")
 }

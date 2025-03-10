@@ -1,0 +1,38 @@
+<html lang="en">
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Scoreboard on #{{.ChannelName}}</title>
+        <style>{{.Style}}</style>
+        <script>
+        </script>
+    </head>
+    <body>
+        <h1>Scoreboard on #{{.ChannelName}}</h1>
+        {{range .GameStats}}
+        {{$CurrentGame := .Game}}
+        <h2>{{$CurrentGame}}</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Games</th>
+                    <th>Lowest</th>
+                    <th>Average</th>
+                    <th>Highest</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{range .Stats}}
+                <tr>
+                    <td><a href="/user?name={{.Username}}&game={{$CurrentGame}}&from={{$.From}}&to={{$.To}}">{{.Username}}</a></td>
+                    <td>{{.Count}}</td>
+                    <td>{{.Lowest}}</td>
+                    <td>{{ printf "%0.2f" .Average }}</td>
+                    <td>{{.Highest}}</td>
+                </tr>
+                {{end}}
+            </tbody>
+        </table>
+        {{end}}
+    </body>
+</html>
