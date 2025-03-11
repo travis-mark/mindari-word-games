@@ -1,15 +1,15 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/joho/godotenv"
 )
-
-// TODO: Consolidate commands here
 
 // Wrapper for connection to Discord
 type DiscordConnection struct {
@@ -53,6 +53,7 @@ func initDiscordConnection() (*DiscordConnection, error) {
 	return discordConnection, nil
 }
 
+// Close connection to discord
 func (dc *DiscordConnection) close() {
 	for _, handler := range dc.onCloseHandlers {
 		err := handler()
@@ -66,17 +67,9 @@ func (dc *DiscordConnection) close() {
 	}
 }
 
+// Add a handler to fire before connection closes
 func (dc *DiscordConnection) onDiscordConnectionClose(handler func() error) {
 	dc.onCloseHandlers = append(dc.onCloseHandlers, handler)
-}
-
-func handleEchoCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
-	s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseChannelMessageWithSource,
-		Data: &discordgo.InteractionResponseData{
-			Content: "Hey there! Congratulations, you just executed your first slash command",
-		},
-	})
 }
 
 func (dc *DiscordConnection) enableCommand(name string, description string, handler func(s *discordgo.Session, i *discordgo.InteractionCreate)) (ccmd *discordgo.ApplicationCommand, err error) {
@@ -95,8 +88,16 @@ func (dc *DiscordConnection) enableCommand(name string, description string, hand
 	return ccmd, err
 }
 
+// Sample command for testing
 func (dc *DiscordConnection) enableEchoCommand() (ccmd *discordgo.ApplicationCommand, err error) {
-	return dc.enableCommand("echo", "Test Command", handleEchoCommand)
+	return dc.enableCommand("echo", "Test Command", func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Content: "Hey there! Congratulations, you just executed your first slash command",
+			},
+		})
+	})
 }
 
 type Options struct {
@@ -140,4 +141,134 @@ func (dc *DiscordConnection) scanChannel(options Options) error {
 		dc.scanChannel(next_page)
 	}
 	return nil
+}
+
+// Periodic channel scan to cover messages not received by websocket
+func (dc *DiscordConnection) channelTick(channel string) error {
+	before, after, err := getScoreIDRange()
+	if err != nil {
+		return err
+	}
+	if before != "" && after != "" {
+		// Incremental load
+		err = dc.scanChannel(Options{Channel: channel, Before: before})
+		if err != nil {
+			return err
+		}
+		err = dc.scanChannel(Options{Channel: channel, After: after})
+		if err != nil {
+			return err
+		}
+	} else {
+		// Fetch all
+		err = dc.scanChannel(Options{Channel: channel})
+		if err != nil {
+			return err
+		}
+	}
+	return err
+}
+
+var channelMonitors = map[string]*time.Ticker{}
+
+// Start periodic scan
+func (dc *DiscordConnection) startChannelMonitor(channel string) error {
+	err := dc.channelTick(channel)
+	if err != nil {
+		return err
+	}
+	ticker := channelMonitors[channel]
+	if ticker != nil {
+		return nil
+	}
+	ticker = time.NewTicker(1 * time.Hour)
+	channelMonitors[channel] = ticker
+	defer ticker.Stop()
+	for range ticker.C {
+		err := dc.channelTick(channel)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (dc *DiscordConnection) startDiscordMonitor() error {
+	dc.Session.Identify.Intents = discordgo.IntentGuilds | discordgo.IntentsGuildMessages
+	logPrintln("Starting monitor...")
+	// Called when a message is created in a channel
+	dc.Session.AddHandler(func(s *discordgo.Session, m *discordgo.MessageCreate) {
+		score, err := ParseScoreFromMessage(m.Message)
+		if err != nil {
+			logPrintln("Parser error: %v, %v", err, m)
+			return
+		}
+		err = addScores([]Score{*score})
+		if err != nil {
+			logPrintln("addScores error: %v, %v", err, m)
+			return
+		}
+		logPrintln("Added score from bot: %s %s %s %s", score.Username, score.Game, score.GameNumber, score.Score)
+		dc.startChannelMonitor(m.ChannelID)
+	})
+	dc.onDiscordConnectionClose(func() error {
+		logPrintln("Stopping monitor...")
+		return nil
+	})
+	return nil
+}
+
+// Cache fetched channel info
+func storeChannelInfo(channel *discordgo.Channel) error {
+	db, err := getDatabase()
+	if err != nil {
+		return err
+	}
+	stmt, err := db.Prepare(`
+		INSERT OR REPLACE INTO channels (channel_id, guild_id, name)
+		VALUES (?, ?, ?)
+	`)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+	_, err = stmt.Exec(channel.ID, channel.GuildID, channel.Name)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// Grab channel info from Discord and save to database for later use
+func (dc *DiscordConnection) fetchChannelInfo(channelID string) (*discordgo.Channel, error) {
+	channel, err := dc.Session.Channel(channelID)
+	if err != nil {
+		return nil, err
+	}
+	err = storeChannelInfo(channel)
+	if err != nil {
+		return nil, err
+	}
+	return channel, nil
+}
+
+// Read channel info from storage.
+//
+// Defaults to a local database. Falls back to querying Discord.
+func readChannelInfo(channelID string) (*discordgo.Channel, error) {
+	db, err := getDatabase()
+	if err != nil {
+		return nil, err
+	}
+	var channel discordgo.Channel
+	row := db.QueryRow("SELECT channel_id, guild_id, name FROM channels WHERE channel_id = ?", channelID)
+	err = row.Scan(&channel.ID, &channel.GuildID, &channel.Name)
+	if err == sql.ErrNoRows && discordConnection != nil {
+		fetched_channel, err := discordConnection.fetchChannelInfo(channelID)
+		return fetched_channel, err
+	} else if err != nil {
+		return nil, err
+	} else {
+		return &channel, nil
+	}
 }
