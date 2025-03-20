@@ -31,7 +31,8 @@ Usage:
 
 The commands are:
 
-        help		Show this list
+		bot         Run discord bot for slash commands
+        help        Show this list
         monitor     Periodically monitor a channel for posted scores
         rescan      Do a full rescan of a channel (in case of defects or edits)
         serve       Start a local webserver to show stats and a leaderboard
@@ -86,6 +87,17 @@ func main() {
 	cmd := args[0]
 	var err error
 	switch cmd {
+	case "bot":
+		dc, err := initDiscordConnection()
+		if err != nil {
+			log.Fatal(err)
+		}
+		_, err = dc.enableSlashCommands()
+		if err != nil {
+			log.Fatal(err)
+		}
+		keepAlive()
+		dc.close()
 	case "echo":
 		dc, err := initDiscordConnection()
 		if err != nil {

@@ -100,6 +100,69 @@ func (dc *DiscordConnection) enableEchoCommand() (ccmd *discordgo.ApplicationCom
 	})
 }
 
+func (dc *DiscordConnection) enableStatsCommand() (ccmd *discordgo.ApplicationCommand, err error) {
+	games, _ := getGameList("", "")
+	choices := []*discordgo.ApplicationCommandOptionChoice{}
+	if len(games) > 0 {
+		for _, game := range games {
+			choices = append(choices, &discordgo.ApplicationCommandOptionChoice{
+				Name:  game,
+				Value: game,
+			})
+		}
+	}
+	cmd := discordgo.ApplicationCommand{
+		Type:        discordgo.ChatApplicationCommand,
+		Name:        "stats",
+		Description: "Show Game Stats",
+		Options: []*discordgo.ApplicationCommandOption{
+			{
+				Type:        discordgo.ApplicationCommandOptionString,
+				Name:        "game",
+				Description: "Name of the game",
+				Required:    true,
+				Choices:     choices,
+			},
+		},
+	}
+	ccmd, err = dc.Session.ApplicationCommandCreate(dc.ApplicationID, "", &cmd)
+	if err != nil {
+		return nil, err
+	}
+	dc.Session.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+		data := i.ApplicationCommandData()
+		game := "Wordle"
+		for _, option := range data.Options {
+			switch option.Name {
+			case "game":
+				game = option.StringValue()
+			}
+		}
+		stats, err := getStats(game, i.ChannelID, "", "")
+		var content string
+		if err != nil {
+			content = fmt.Sprintf("Error getting stats: %v", err)
+		} else {
+			content = SPrintStatsMarkdownDiscord(stats)
+		}
+
+		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Content: content,
+			},
+		})
+	})
+	dc.onDiscordConnectionClose(func() error {
+		return dc.Session.ApplicationCommandDelete(dc.ApplicationID, "", ccmd.ID)
+	})
+	return ccmd, err
+}
+
+func (dc *DiscordConnection) enableSlashCommands() (ccmd *discordgo.ApplicationCommand, err error) {
+	return dc.enableStatsCommand()
+}
+
 type Options struct {
 	Channel string // Discord Channel ID
 	Before  string // Backward search pointer
