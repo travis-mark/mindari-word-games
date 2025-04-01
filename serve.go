@@ -78,7 +78,15 @@ func channelHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	games, err := getGameList(channelID, "")
+	from := params.Get("from")
+	if from == "" {
+		from = defaultDateStart()
+	}
+	to := params.Get("to")
+	if to == "" {
+		to = defaultDateEnd()
+	}
+	games, err := getGameList(channel.GuildID, "", from, to)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -87,15 +95,7 @@ func channelHandler(w http.ResponseWriter, r *http.Request) {
 	if game == "" {
 		game = games[0]
 	}
-	dateStart := params.Get("from")
-	if dateStart == "" {
-		dateStart = defaultDateStart()
-	}
-	dateEnd := params.Get("to")
-	if dateEnd == "" {
-		dateEnd = defaultDateEnd()
-	}
-	stats, err := getStats(game, channelID, dateStart, dateEnd)
+	stats, err := getStats(game, channel.GuildID, from, to)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -113,8 +113,8 @@ func channelHandler(w http.ResponseWriter, r *http.Request) {
 		ChannelID:   channel.ID,
 		ChannelName: channel.Name,
 		CurrentGame: game,
-		DateStart:   dateStart,
-		DateEnd:     dateEnd,
+		DateStart:   from,
+		DateEnd:     to,
 		Games:       games,
 		Stats:       stats,
 		Style:       template.CSS(stylesheet),
@@ -147,7 +147,7 @@ func statsHandler(w http.ResponseWriter, r *http.Request) {
 	if to == "" {
 		to = defaultDateEnd()
 	}
-	games, err := getGameList(channelID, "")
+	games, err := getGameList(channel.GuildID, "", from, to)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -158,7 +158,7 @@ func statsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	var gameStats []GameStats
 	for _, game := range games {
-		stats, err := getStats(game, channelID, from, to)
+		stats, err := getStats(game, channel.GuildID, from, to)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -197,15 +197,6 @@ func userHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Username Required", http.StatusInternalServerError)
 		return
 	}
-	games, err := getGameList("", username)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	game := params.Get("game")
-	if game == "" {
-		game = games[0]
-	}
 	from := params.Get("from")
 	if from == "" {
 		from = defaultDateStart()
@@ -213,6 +204,15 @@ func userHandler(w http.ResponseWriter, r *http.Request) {
 	to := params.Get("to")
 	if to == "" {
 		to = defaultDateEnd()
+	}
+	games, err := getGameList("", username, from, to)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	game := params.Get("game")
+	if game == "" {
+		game = games[0]
 	}
 	friends, err := getFriendNames(username)
 	if err != nil {

@@ -16,25 +16,56 @@ type Stats struct {
 	Highest  float32
 }
 
-// Get a list of games. Add channelID or username to filter the list.
-func getGameList(channelID string, username string) ([]string, error) {
+// Get a list of games. Add guild or user to filter the list.
+func getGameList(guildID string, username string, from string, to string) ([]string, error) {
 	db, err := getDatabase()
 	if err != nil {
 		return nil, err
 	}
+	if from == "" {
+		from = defaultDateStart()
+	}
+	if to == "" {
+		to = defaultDateEnd()
+	}
 	var rows *sql.Rows
-	if channelID != "" && username != "" {
-		sql := `SELECT DISTINCT game FROM scores WHERE channel_id = ? AND username = ?`
-		rows, err = db.Query(sql, channelID, username)
-	} else if channelID != "" {
-		sql := `SELECT DISTINCT game FROM scores WHERE channel_id = ?`
-		rows, err = db.Query(sql, channelID)
+	if guildID != "" && username != "" {
+		sql := `
+			SELECT DISTINCT p.game 
+			FROM scores s
+			JOIN puzzles p
+				ON s.game = p.game AND s.game_number = p.game_number
+			JOIN channels c
+				ON c.channel_id = s.channel_id
+			WHERE c.guild_id = ? AND username = ?
+				AND p.date >= ? AND p.date <= ?`
+		rows, err = db.Query(sql, guildID, username, from, to)
+	} else if guildID != "" {
+		sql := `
+			SELECT DISTINCT p.game 
+			FROM scores s
+			JOIN channels c
+				ON c.channel_id = s.channel_id
+			JOIN puzzles p
+				ON s.game = p.game AND s.game_number = p.game_number
+			WHERE c.guild_id = ? AND p.date >= ? AND p.date <= ?`
+		rows, err = db.Query(sql, guildID, from, to)
 	} else if username != "" {
-		sql := `SELECT DISTINCT game FROM scores WHERE username = ?`
-		rows, err = db.Query(sql, username)
+		sql := `
+			SELECT DISTINCT p.game 
+			FROM scores s 
+			JOIN puzzles p
+				ON s.game = p.game AND s.game_number = p.game_number
+			WHERE username = ? AND p.date >= ? AND p.date <= ?`
+		rows, err = db.Query(sql, username, from, to)
 	} else {
-		sql := `SELECT DISTINCT game FROM scores`
-		rows, err = db.Query(sql)
+		sql := `
+			SELECT DISTINCT p.game 
+			FROM scores s
+			JOIN puzzles p
+				ON s.game = p.game AND s.game_number = p.game_number
+			WHERE p.date >= ? AND p.date <= ?`
+		rows, err = db.Query(sql, from, to)
 	}
 	if err != nil {
 		return nil, fmt.Errorf("failed to get games: %v", err)
@@ -54,7 +85,8 @@ func getGameList(channelID string, username string) ([]string, error) {
 	return games, nil
 }
 
-func getStats(game string, channelID string, from string, to string) ([]Stats, error) {
+// Aggregate stats for a game.
+func getStats(game string, guildID string, from string, to string) ([]Stats, error) {
 	db, err := getDatabase()
 	if err != nil {
 		return nil, err
@@ -69,13 +101,15 @@ func getStats(game string, channelID string, from string, to string) ([]Stats, e
 	sql := `
 		SELECT username, COUNT(id), MIN(score), AVG(score), MAX(score)
 		FROM scores s
+		JOIN channels c
+			ON c.channel_id = s.channel_id
 		JOIN puzzles p
 			ON s.game = p.game AND s.game_number = p.game_number
-		WHERE s.game = ? AND channel_id = ? AND p.date >= ? AND p.date <= ?
+		WHERE s.game = ? AND guild_id = ? AND p.date >= ? AND p.date <= ?
 		GROUP BY username
 		ORDER BY 4
 	`
-	rows, err = db.Query(sql, game, channelID, from, to)
+	rows, err = db.Query(sql, game, guildID, from, to)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get stats: %v", err)
 	}

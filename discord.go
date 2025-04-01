@@ -101,7 +101,7 @@ func (dc *DiscordConnection) enableEchoCommand() (ccmd *discordgo.ApplicationCom
 }
 
 func (dc *DiscordConnection) enableStatsCommand() (ccmd *discordgo.ApplicationCommand, err error) {
-	games, _ := getGameList("", "")
+	games, _ := getGameList("", "", "", "")
 	choices := []*discordgo.ApplicationCommandOptionChoice{}
 	if len(games) > 0 {
 		for _, game := range games {
@@ -138,14 +138,13 @@ func (dc *DiscordConnection) enableStatsCommand() (ccmd *discordgo.ApplicationCo
 				game = option.StringValue()
 			}
 		}
-		stats, err := getStats(game, i.ChannelID, "", "")
+		stats, err := getStats(game, i.GuildID, "", "")
 		var content string
 		if err != nil {
 			content = fmt.Sprintf("Error getting stats: %v", err)
 		} else {
 			content = SPrintStatsMarkdownDiscord(stats)
 		}
-
 		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{

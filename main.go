@@ -137,20 +137,20 @@ func main() {
 		}
 	case "season":
 		cmd := flag.NewFlagSet("season", flag.ExitOnError)
-		channel := cmd.String("channel", "", "Channel ID for stats")
+		guild := cmd.String("guild", "", "Guild ID for stats")
 		cmd.Parse(args[1:])
-		if *channel == "" {
+		if *guild == "" {
 			cmd.Usage()
 			os.Exit(1)
 		}
-		games, err := getGameList(*channel, "")
+		start := defaultDateStart()
+		end := defaultDateEnd()
+		games, err := getGameList(*guild, "", start, end)
 		if err != nil {
 			log.Fatal(err)
 		}
-		start := defaultDateStart()
-		end := defaultDateEnd()
 		for _, game := range games {
-			stats, err := getStats(game, *channel, start, end)
+			stats, err := getStats(game, *guild, start, end)
 			if len(stats) > 0 {
 				fmt.Printf("### %s\n", game)
 				if err != nil {
@@ -170,14 +170,14 @@ func main() {
 	case "stats":
 		cmd := flag.NewFlagSet("stats", flag.ExitOnError)
 		game := cmd.String("game", "Wordle", "Game to print stats")
-		channel := cmd.String("channel", "", "Channel ID for stats")
+		guild := cmd.String("guild", "", "Guild ID for stats")
 		format := cmd.String("format", "", "Format for output")
 		cmd.Parse(args[1:])
-		if *channel == "" || *game == "" {
+		if *guild == "" || *game == "" {
 			cmd.Usage()
 			os.Exit(1)
 		}
-		stats, err := getStats(*game, *channel, "", "")
+		stats, err := getStats(*game, *guild, "", "")
 		if err != nil {
 			log.Fatal(err)
 		}
