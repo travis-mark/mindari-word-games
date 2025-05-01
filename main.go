@@ -92,7 +92,7 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		_, err = dc.enableSlashCommands()
+		err = dc.enableSlashCommands()
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -152,7 +152,7 @@ func main() {
 		for _, game := range games {
 			stats, err := getStats(game, *guild, start, end)
 			if len(stats) > 0 {
-				fmt.Printf("### %s\n", game)
+				fmt.Printf("# %s\n", game)
 				if err != nil {
 					log.Fatal(err)
 				}

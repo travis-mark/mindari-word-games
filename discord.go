@@ -158,8 +158,59 @@ func (dc *DiscordConnection) enableStatsCommand() (ccmd *discordgo.ApplicationCo
 	return ccmd, err
 }
 
-func (dc *DiscordConnection) enableSlashCommands() (ccmd *discordgo.ApplicationCommand, err error) {
-	return dc.enableStatsCommand()
+func (dc *DiscordConnection) enableSeasonCommand() (ccmd *discordgo.ApplicationCommand, err error) {
+	games, _ := getGameList("", "", "", "")
+	cmd := discordgo.ApplicationCommand{
+		Type:        discordgo.ChatApplicationCommand,
+		Name:        "season",
+		Description: "Show Season Report (all games)",
+	}
+	ccmd, err = dc.Session.ApplicationCommandCreate(dc.ApplicationID, "", &cmd)
+	if err != nil {
+		return nil, err
+	}
+	dc.Session.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+		content := ""
+		for _, game := range games {
+			stats, err := getStats(game, i.GuildID, "", "")
+			if err != nil {
+				s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+					Type: discordgo.InteractionResponseChannelMessageWithSource,
+					Data: &discordgo.InteractionResponseData{
+						Content: err.Error(),
+					},
+				})
+				return
+			} else {
+				content = content + "# " + game + "\n"
+				content = content + SPrintStatsMarkdownDiscord(stats) + "\n"
+			}
+		}
+		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Content: content,
+			},
+		})
+	})
+	dc.onDiscordConnectionClose(func() error {
+		return dc.Session.ApplicationCommandDelete(dc.ApplicationID, "", ccmd.ID)
+	})
+	return ccmd, err
+}
+
+func (dc *DiscordConnection) enableSlashCommands() (err error) {
+	_, err = dc.enableStatsCommand()
+	if err != nil {
+		return err
+	}
+	logPrintln("/stats added")
+	_, err = dc.enableSeasonCommand()
+	if err != nil {
+		return err
+	}
+	logPrintln("/season added")
+	return nil
 }
 
 type Options struct {
