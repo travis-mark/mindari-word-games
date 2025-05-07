@@ -33,7 +33,7 @@ The commands are:
 
 		bot         Run discord bot for slash commands
         help        Show this list
-        monitor     Periodically monitor a channel for posted scores
+        monitor     Periodically monitor for posted scores
         rescan      Do a full rescan of a channel (in case of defects or edits)
         serve       Start a local webserver to show stats and a leaderboard
         stats       Print stats to standard output to use for custom graphs
