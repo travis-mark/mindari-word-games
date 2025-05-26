@@ -75,6 +75,14 @@ func TestScoreParser(t *testing.T) {
 			input:  "#Tradle #1072 X/6 🟩🟩🟩🟨⬜ 🟩🟩🟨⬜⬜ 🟩🟩🟩⬜⬜ 🟩🟩🟩🟩⬜ 🟩🟩🟩⬜⬜ 🟩🟩🟩⬜⬜ https://oec.world/en/games/tradle",
 			output: Score{Game: "Tradle", Score: "7", GameNumber: "1072", Win: "N"},
 		},
+		{ 
+			input: "Strands #448\n“Get out the dust buster!”\n🔵💡🔵💡\n🔵💡🔵🟡\n💡🔵",
+			output: Score{Game: "Strands", Score: "4", GameNumber: "448", Win: "Y"},
+		},
+		{ 
+			input: "Strands #449\n“Body language”\n💡🔵🔵🔵\n💡🔵🟡🔵\n🔵",
+			output: Score{Game: "Strands", Score: "2", GameNumber: "449", Win: "Y"},
+		},
 	}
 	for _, item := range data {
 		score, err := ParseScoreFromContent(item.input)

@@ -31,7 +31,8 @@ Usage:
 
 The commands are:
 
-		bot         Run discord bot for slash commands
+        bot         Run discord bot for slash commands
+        list        List channels with data
         help        Show this list
         monitor     Periodically monitor for posted scores
         rescan      Do a full rescan of a channel (in case of defects or edits)
@@ -109,6 +110,14 @@ func main() {
 		}
 		keepAlive()
 		dc.close()
+	case "list":
+		channels, err := getChannelList()
+		if err != nil {
+			log.Fatal(err)
+		}
+		for _, channel := range channels {
+			fmt.Println(channel)
+		}
 	case "monitor":
 		dc, err := initDiscordConnection()
 		if err != nil {

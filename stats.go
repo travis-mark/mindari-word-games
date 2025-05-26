@@ -16,6 +16,32 @@ type Stats struct {
 	Highest  float32
 }
 
+// Get a list of channels.
+func getChannelList() ([]string, error) {
+	db, err := getDatabase()
+	if err != nil {
+		return nil, err
+	}
+	var rows *sql.Rows
+	sql := `
+		SELECT channel_id
+		FROM channels c`
+	rows, err = db.Query(sql)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get games: %v", err)
+	}
+	var channels []string
+	for rows.Next() {
+		var channel string
+		err := rows.Scan(&channel)
+		if err != nil {
+			return nil, err
+		}
+		channels = append(channels, channel)
+	}
+	return channels, nil
+}
+
 // Get a list of games. Add guild or user to filter the list.
 func getGameList(guildID string, username string, from string, to string) ([]string, error) {
 	db, err := getDatabase()
