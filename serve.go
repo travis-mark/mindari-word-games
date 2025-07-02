@@ -259,7 +259,56 @@ func userHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Handler for /attendance
+func attendanceHandler(w http.ResponseWriter, r *http.Request) {
+	params := r.URL.Query()
+	channelID := params.Get("cid")
+	if channelID == "" {
+		http.Error(w, "Channel Required", http.StatusInternalServerError)
+		return
+	}
+	channel, err := readChannelInfo(channelID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	month := params.Get("month")
+	if month == "" {
+		month = getCurrentMonth()
+	}
+	stats, err := getAttendanceStatsForMonth(channel.GuildID, month)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	err = tmpl.ExecuteTemplate(w, "attendance.tmpl", struct {
+		ChannelID     string
+		ChannelName   string
+		Month         string
+		MonthDisplay  string
+		PreviousMonth string
+		NextMonth     string
+		Stats         []AttendanceStats
+		Style         template.CSS
+	}{
+		ChannelID:     channelID,
+		ChannelName:   channel.Name,
+		Month:         month,
+		MonthDisplay:  formatMonthDisplay(month),
+		PreviousMonth: getPreviousMonth(month),
+		NextMonth:     getNextMonth(month),
+		Stats:         stats,
+		Style:         template.CSS(stylesheet),
+	})
+	if err != nil {
+		logPrintln("%v", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
 func startWebServer(addr string) error {
+	http.HandleFunc("/attendance", attendanceHandler)
 	http.HandleFunc("/channel", channelHandler)
 	http.HandleFunc("/stats", statsHandler)
 	http.HandleFunc("/user", userHandler)

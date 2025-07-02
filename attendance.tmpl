@@ -1,0 +1,39 @@
+<html lang="en">
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Attendance on #{{.ChannelName}}</title>
+        <style>{{.Style}}</style>
+    </head>
+    <body>
+        <h1><a href="/" style="text-decoration: none">&lt;</a>Attendance on #{{.ChannelName}}</h1>
+        
+        <div style="display: flex; align-items: center; gap: 20px; margin: 20px 0;">
+            <a href="/attendance?cid={{.ChannelID}}&month={{.PreviousMonth}}">&lt; Previous</a>
+            <h2 style="margin: 0;">{{.MonthDisplay}}</h2>
+            <a href="/attendance?cid={{.ChannelID}}&month={{.NextMonth}}">Next &gt;</a>
+        </div>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Player</th>
+                    <th>Games Played</th>
+                    <th>Days Active</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{range .Stats}}
+                <tr>
+                    <td><a href="/user?name={{.Username}}">{{.Username}}</a></td>
+                    <td>{{.GamesPlayed}}</td>
+                    <td>{{.DaysActive}}</td>
+                </tr>
+                {{end}}
+            </tbody>
+        </table>
+        
+        {{if not .Stats}}
+        <p>No attendance data found for {{.MonthDisplay}}.</p>
+        {{end}}
+    </body>
+</html>

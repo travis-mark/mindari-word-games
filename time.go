@@ -40,3 +40,37 @@ func defaultDateEnd() string {
 	t1 := t0.AddDate(0, 1, 0).AddDate(0, 0, -1)
 	return t1.Format("2006-01-02")
 }
+
+func getCurrentMonth() string {
+	return time.Now().Format("2006-01")
+}
+
+func parseMonth(monthStr string) (time.Time, error) {
+	return time.Parse("2006-01", monthStr)
+}
+
+func getPreviousMonth(monthStr string) string {
+	t, err := parseMonth(monthStr)
+	if err != nil {
+		return getCurrentMonth()
+	}
+	prev := t.AddDate(0, -1, 0)
+	return prev.Format("2006-01")
+}
+
+func getNextMonth(monthStr string) string {
+	t, err := parseMonth(monthStr)
+	if err != nil {
+		return getCurrentMonth()
+	}
+	next := t.AddDate(0, 1, 0)
+	return next.Format("2006-01")
+}
+
+func formatMonthDisplay(monthStr string) string {
+	t, err := parseMonth(monthStr)
+	if err != nil {
+		return monthStr
+	}
+	return t.Format("January 2006")
+}

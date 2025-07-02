@@ -324,3 +324,52 @@ func getFriendNames(username string) ([]string, error) {
 	}
 	return friends, nil
 }
+
+type AttendanceStats struct {
+	Username      string
+	GamesPlayed   int
+	DaysActive    int
+}
+
+// Get attendance statistics for a guild for a specific month - games played and days active per player
+func getAttendanceStatsForMonth(guildID string, month string) ([]AttendanceStats, error) {
+	db, err := getDatabase()
+	if err != nil {
+		return nil, err
+	}
+	sql := `
+		SELECT 
+			s.username,
+			COUNT(s.id) as games_played,
+			COUNT(DISTINCT DATE(p.date)) as days_active
+		FROM scores s
+		JOIN puzzles p ON s.game = p.game AND s.game_number = p.game_number
+		JOIN channels c ON s.channel_id = c.channel_id
+		WHERE c.guild_id = ? AND strftime('%Y-%m', p.date) = ?
+		GROUP BY s.username
+		ORDER BY s.username
+	`
+	rows, err := db.Query(sql, guildID, month)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get attendance stats: %v", err)
+	}
+	defer rows.Close()
+	
+	var stats []AttendanceStats
+	for rows.Next() {
+		var stat AttendanceStats
+		err := rows.Scan(
+			&stat.Username,
+			&stat.GamesPlayed,
+			&stat.DaysActive,
+		)
+		if err != nil {
+			return nil, err
+		}
+		stats = append(stats, stat)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+	return stats, nil
+}
