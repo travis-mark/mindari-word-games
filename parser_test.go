@@ -83,6 +83,14 @@ func TestScoreParser(t *testing.T) {
 			input:  "Strands #449\n“Body language”\n💡🔵🔵🔵\n💡🔵🟡🔵\n🔵",
 			output: Score{Game: "Strands", Score: "2", GameNumber: "449", Win: "Y"},
 		},
+		{ 
+			input: "🦡 Animal #770 🐮\nI figured it out in 9 guesses!\n🟧🟧🟧🟧🟩🟩🟩🟩🟩\n🔥 1 | Avg. Guesses: 6.9\n\nhttps://metazooa.com/\n#metazooa",
+			output: Score{Game: "Animal", Score: "9", GameNumber: "770", Win: "Y"},
+		},
+		{ 
+			input: "🐹 Animal #772 🐃\nI was stumped by today's game!\n🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟧🟥🟥🟧🟧🟧🟥🟥🟥\n🔥 0 | Avg. Guesses: 0\n\nhttps://metazooa.com\n#metazooa",
+			output: Score{Game: "Animal", Score: "20", GameNumber: "772", Win: "N"},
+		},
 	}
 	for _, item := range data {
 		score, err := ParseScoreFromContent(item.input)

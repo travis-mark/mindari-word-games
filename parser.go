@@ -38,6 +38,7 @@ func ParseScoreFromContent(content string) (*Score, error) {
 		regexp.MustCompile(`(?s)(?P<game>Connections).*Puzzle #(?P<game_no>\d+)`),
 		regexp.MustCompile(`(?s)(?P<game>Tradle) #(?P<game_no>\d+).*(?P<score>[123456X])\/6`),
 		regexp.MustCompile(`(?s)(?P<game>Strands) #(?P<game_no>\d+).*`),
+		regexp.MustCompile(`(?s).*(?P<game>Animal) #(?P<game_no>\d+).*`),
 	}
 	var captures map[string]string
 	for _, re := range patterns {
@@ -121,6 +122,13 @@ func ParseScoreFromContent(content string) (*Score, error) {
 	case game == "Strands":
 		score_value = strconv.Itoa(strings.Count(content, "💡"))
 		win = "Y"
+	case game == "Animal":
+		score_value = strconv.Itoa(strings.Count(content, "🟧") + strings.Count(content, "🟩") + strings.Count(content, "🟥"))
+		if score_value == "20" {
+			win = "N"
+		} else {
+			win = "Y"
+		}
 	}
 
 	score := Score{
