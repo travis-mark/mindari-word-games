@@ -39,6 +39,7 @@ func ParseScoreFromContent(content string) (*Score, error) {
 		regexp.MustCompile(`(?s)(?P<game>Tradle) #(?P<game_no>\d+).*(?P<score>[123456X])\/6`),
 		regexp.MustCompile(`(?s)(?P<game>Strands) #(?P<game_no>\d+).*`),
 		regexp.MustCompile(`(?s).*(?P<game>Animal) #(?P<game_no>\d+).*`),
+		regexp.MustCompile(`(?s)(?P<game>Zip) #(?P<game_no>\d+).*`),
 	}
 	var captures map[string]string
 	for _, re := range patterns {
@@ -129,6 +130,13 @@ func ParseScoreFromContent(content string) (*Score, error) {
 		} else {
 			win = "Y"
 		}
+	case game == "Zip":
+		re := regexp.MustCompile(`(?s)(\d+):(\d+)`)
+		match := re.FindStringSubmatch(content)
+		minutes, _ := strconv.Atoi(match[1])
+		seconds, _ := strconv.Atoi(match[2])
+		score_value = strconv.Itoa(minutes * 60 + seconds)
+		win = "Y"
 	}
 
 	score := Score{

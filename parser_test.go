@@ -91,6 +91,18 @@ func TestScoreParser(t *testing.T) {
 			input: "🐹 Animal #772 🐃\nI was stumped by today's game!\n🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟧🟥🟥🟧🟧🟧🟥🟥🟥\n🔥 0 | Avg. Guesses: 0\n\nhttps://metazooa.com\n#metazooa",
 			output: Score{Game: "Animal", Score: "20", GameNumber: "772", Win: "N"},
 		},
+		{ 
+			input: "Zip #175 | 0:11 🏁\nWith 1 backtrack 🛑\nlnkd.in/zip.",
+			output: Score{Game: "Zip", Score: "11", GameNumber: "175", Win: "Y"},
+		},
+		{ 
+			input: "Zip #176 | 0:10 and flawless 🏁\nWith no backtracks 🟢\nlnkd.in/zip.",
+			output: Score{Game: "Zip", Score: "10", GameNumber: "176", Win: "Y"},
+		},
+		{ 
+			input: "Zip #176 | 1:43 🏁\nlnkd.in/zip.",
+			output: Score{Game: "Zip", Score: "103", GameNumber: "176", Win: "Y"},
+		},
 	}
 	for _, item := range data {
 		score, err := ParseScoreFromContent(item.input)
