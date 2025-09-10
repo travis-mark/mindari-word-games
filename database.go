@@ -326,9 +326,9 @@ func getFriendNames(username string) ([]string, error) {
 }
 
 type AttendanceStats struct {
-	Username      string
-	GamesPlayed   int
-	DaysActive    int
+	Username    string
+	GamesPlayed int
+	DaysActive  int
 }
 
 // Get attendance statistics for a guild for a specific month - games played and days active per player
@@ -354,7 +354,7 @@ func getAttendanceStatsForMonth(guildID string, month string) ([]AttendanceStats
 		return nil, fmt.Errorf("failed to get attendance stats: %v", err)
 	}
 	defer rows.Close()
-	
+
 	var stats []AttendanceStats
 	for rows.Next() {
 		var stat AttendanceStats
