@@ -174,7 +174,7 @@ func main() {
 		port := cmd.String("port", "7654", "Port to run server")
 		cmd.Parse(args[1:])
 		addr := fmt.Sprintf(":%s", *port)
-		logPrintln("Starting server on %s", addr)
+		logPrintln("Starting server on http://localhost:%s", *port)
 		err = startWebServer(addr)
 	case "stats":
 		cmd := flag.NewFlagSet("stats", flag.ExitOnError)

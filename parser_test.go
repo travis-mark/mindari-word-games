@@ -103,6 +103,14 @@ func TestScoreParser(t *testing.T) {
 			input: "Zip #176 | 1:43 🏁\nlnkd.in/zip.",
 			output: Score{Game: "Zip", Score: "103", GameNumber: "176", Win: "Y"},
 		},
+		{
+			input: "Mini Sudoku #28 | 0:54 and flawless ✏️\nThe classic game, made mini. Handcrafted by the originators of \"Sudoku.\"\nlnkd.in/minisudoku.",
+			output: Score{Game: "Mini Sudoku", Score: "54", GameNumber: "28", Win: "Y"},
+		},
+		{
+			input: "Mini Sudoku #31 | 3:16 and flawless ✏️\nThe classic game, made mini. Handcrafted by the originators of \"Sudoku.\"\nlnkd.in/minisudoku.",
+			output: Score{Game: "Mini Sudoku", Score: "196", GameNumber: "31", Win: "Y"},
+		},
 	}
 	for _, item := range data {
 		score, err := ParseScoreFromContent(item.input)

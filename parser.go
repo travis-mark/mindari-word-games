@@ -40,6 +40,7 @@ func ParseScoreFromContent(content string) (*Score, error) {
 		regexp.MustCompile(`(?s)(?P<game>Strands) #(?P<game_no>\d+).*`),
 		regexp.MustCompile(`(?s).*(?P<game>Animal) #(?P<game_no>\d+).*`),
 		regexp.MustCompile(`(?s)(?P<game>Zip) #(?P<game_no>\d+).*`),
+		regexp.MustCompile(`(?s)(?P<game>Mini Sudoku) #(?P<game_no>\d+).*`),
 	}
 	var captures map[string]string
 	for _, re := range patterns {
@@ -130,7 +131,7 @@ func ParseScoreFromContent(content string) (*Score, error) {
 		} else {
 			win = "Y"
 		}
-	case game == "Zip":
+	case game == "Zip" || game == "Mini Sudoku":
 		re := regexp.MustCompile(`(?s)(\d+):(\d+)`)
 		match := re.FindStringSubmatch(content)
 		minutes, _ := strconv.Atoi(match[1])
