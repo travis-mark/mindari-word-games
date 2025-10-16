@@ -385,3 +385,31 @@ func readChannelInfo(channelID string) (*discordgo.Channel, error) {
 		return &channel, nil
 	}
 }
+
+// Update all channels from their most recent entry forward
+func (dc *DiscordConnection) updateAllChannels() error {
+	channels, err := getChannelList()
+	if err != nil {
+		return err
+	}
+	if len(channels) == 0 {
+		logPrintln("No channels found to update")
+		return nil
+	}
+	for _, channelID := range channels {
+		mostRecentID, err := getMostRecentMessageID(channelID)
+		if err != nil {
+			return fmt.Errorf("failed to get most recent message ID for channel %s: %v", channelID, err)
+		}
+		if mostRecentID == "" {
+			logPrintln("Channel %s has no messages, skipping", channelID)
+			continue
+		}
+		logPrintln("Updating channel %s from message %s", channelID, mostRecentID)
+		err = dc.scanChannel(Options{Channel: channelID, After: mostRecentID})
+		if err != nil {
+			return fmt.Errorf("failed to update channel %s: %v", channelID, err)
+		}
+	}
+	return nil
+}

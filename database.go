@@ -136,6 +136,23 @@ func getScoreIDRange() (string, string, error) {
 	}
 }
 
+// Get most recent message ID for a specific channel
+func getMostRecentMessageID(channelID string) (string, error) {
+	db, err := getDatabase()
+	if err != nil {
+		return "", err
+	}
+	var messageID string
+	err = db.QueryRow("SELECT MAX(id) FROM scores WHERE channel_id = ?", channelID).Scan(&messageID)
+	if err == sql.ErrNoRows {
+		return "", nil
+	}
+	if err != nil {
+		return "", err
+	}
+	return messageID, nil
+}
+
 // Get latest scores
 func GetRecentScores() ([]Score, error) {
 	db, err := getDatabase()

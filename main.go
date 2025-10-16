@@ -38,7 +38,8 @@ The commands are:
         rescan      Do a full rescan of a channel (in case of defects or edits)
         serve       Start a local webserver to show stats and a leaderboard
         stats       Print stats to standard output to use for custom graphs
-		
+        update      Scan all channels from their most recent entry forward
+
 `
 	tmpl := template.Must(template.New("help").Parse(text))
 	tmpl.Execute(os.Stdout, struct {
@@ -191,6 +192,15 @@ func main() {
 			log.Fatal(err)
 		}
 		PrintStats(stats, *format)
+	case "update":
+		dc, err := initDiscordConnection()
+		if err != nil {
+			log.Fatal(err)
+		}
+		err = dc.updateAllChannels()
+		if err != nil {
+			log.Fatal(err)
+		}
 	default:
 		help()
 	}
